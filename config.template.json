@@ -1,0 +1,18 @@
+{
+  "accounts": [],
+  "email": {
+    "sender_email": "",
+    "app_password": ""
+  },
+  "schedule": {
+    "report_time": "09:00",
+    "alert_check_time": "23:00"
+  },
+  "alert": {
+    "enabled": true,
+    "daily_spend_threshold": 50000.0
+  },
+  "server_url": "",
+  "coupang_accounts": [],
+  "gfa_accounts": []
+}

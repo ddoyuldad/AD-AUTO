@@ -31,6 +31,12 @@ desktop.ini
 downloads/
 logs/
 
+# pip 실수 파일
+=*
+
+# 압축 캐시
+__pycache__.zip
+
 # Chrome WebDriver 캐시
 .wdm/
 
