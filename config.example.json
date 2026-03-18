@@ -1,0 +1,43 @@
+{
+  "accounts": [
+    {
+      "name": "계정 이름",
+      "customer_id": "네이버광고_고객ID",
+      "api_key": "네이버광고_API키",
+      "secret_key": "네이버광고_시크릿키",
+      "report_recipients": ["받을이메일@naver.com"]
+    }
+  ],
+  "email": {
+    "sender_email": "보내는이메일@naver.com",
+    "app_password": "네이버_앱비밀번호"
+  },
+  "schedule": {
+    "report_time": "09:00",
+    "alert_check_time": "23:00"
+  },
+  "alert": {
+    "enabled": true,
+    "daily_spend_threshold": 50000.0
+  },
+  "server_url": "",
+  "coupang_accounts": [
+    {
+      "name": "쿠팡 계정명",
+      "wing_id": "쿠팡_Wing_ID",
+      "wing_password": "쿠팡_비밀번호",
+      "report_recipients": ["받을이메일@naver.com"],
+      "headless": false
+    }
+  ],
+  "gfa_accounts": [
+    {
+      "name": "GFA 계정명",
+      "naver_id": "네이버_ID",
+      "naver_password": "네이버_비밀번호",
+      "ad_account_id": "광고계정_고유번호",
+      "report_recipients": ["받을이메일@naver.com"],
+      "headless": false
+    }
+  ]
+}

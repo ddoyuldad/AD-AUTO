@@ -1,0 +1,38 @@
+# 환경변수 & 민감 정보
+.env
+config.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+*.egg
+
+# 가상환경
+venv/
+.venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 다운로드/디버그 데이터
+downloads/
+logs/
+
+# Chrome WebDriver 캐시
+.wdm/
+
+# Claude 관련
+.claude/

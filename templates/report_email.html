@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="margin:0; padding:20px; background:#f0f2f5; font-family:'Malgun Gothic','맑은 고딕',sans-serif;">
+<div style="max-width:900px; margin:0 auto; background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+
+  <!-- ═══ 헤더 ═══ -->
+  <div style="background:#1a472a; color:#fff; padding:24px 32px;">
+    <h1 style="margin:0; font-size:22px; font-weight:700; letter-spacing:-0.3px;">네이버 검색광고 리포트</h1>
+    <p style="margin:6px 0 0; font-size:14px; opacity:0.85;">
+      {{ report.account_name }} &nbsp;|&nbsp;
+      {% if report.date_from and report.date_to and report.date_from != report.date_to %}
+        {{ report.date_from.strftime('%Y.%m.%d') }} ~ {{ report.date_to.strftime('%Y.%m.%d') }}
+      {% else %}
+        {{ report.report_date.strftime('%Y년 %m월 %d일') }}
+      {% endif %}
+    </p>
+  </div>
+
+  <!-- ═══ KPI 요약 카드 Row 1 ═══ -->
+  <div style="padding:24px 32px 8px;">
+    <table style="width:100%; border-collapse:separate; border-spacing:8px 0;">
+      <tr>
+        <td style="width:20%; text-align:center; padding:14px 6px; background:#f8faf9; border-radius:8px; border:1px solid #e8ece9;">
+          <div style="font-size:10px; color:#888; margin-bottom:4px;">총 비용</div>
+          <div style="font-size:18px; font-weight:bold; color:#1a472a;">{{ "{:,.0f}".format(report.total_cost) }}<span style="font-size:11px;font-weight:normal;">원</span></div>
+        </td>
+        <td style="width:20%; text-align:center; padding:14px 6px; background:#f8faf9; border-radius:8px; border:1px solid #e8ece9;">
+          <div style="font-size:10px; color:#888; margin-bottom:4px;">총 노출</div>
+          <div style="font-size:18px; font-weight:bold; color:#333;">{{ "{:,}".format(report.total_impressions) }}</div>
+        </td>
+        <td style="width:20%; text-align:center; padding:14px 6px; background:#f8faf9; border-radius:8px; border:1px solid #e8ece9;">
+          <div style="font-size:10px; color:#888; margin-bottom:4px;">총 클릭</div>
+          <div style="font-size:18px; font-weight:bold; color:#333;">{{ "{:,}".format(report.total_clicks) }}</div>
+        </td>
+        <td style="width:20%; text-align:center; padding:14px 6px; background:#f8faf9; border-radius:8px; border:1px solid #e8ece9;">
+          <div style="font-size:10px; color:#888; margin-bottom:4px;">총 전환</div>
+          <div style="font-size:18px; font-weight:bold; color:#333;">{{ "{:,}".format(report.total_conversions) }}</div>
+        </td>
+        <td style="width:20%; text-align:center; padding:14px 6px; background:#f8faf9; border-radius:8px; border:1px solid #e8ece9;">
+          <div style="font-size:10px; color:#888; margin-bottom:4px;">ROAS</div>
+          <div style="font-size:18px; font-weight:bold; color:{% if report.total_roas >= 100 %}#1a472a{% elif report.total_roas > 0 %}#c0392b{% else %}#888{% endif %};">{{ "{:,.0f}".format(report.total_roas) }}<span style="font-size:11px;font-weight:normal;">%</span></div>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- KPI Row 2 -->
+  <div style="padding:4px 32px 16px;">
+    <table style="width:100%; border-collapse:separate; border-spacing:8px 0;">
+      <tr>
+        <td style="width:25%; text-align:center; padding:12px 6px; background:#f8faf9; border-radius:8px; border:1px solid #e8ece9;">
+          <div style="font-size:10px; color:#888; margin-bottom:4px;">전환 매출</div>
+          <div style="font-size:16px; font-weight:bold; color:#333;">{{ "{:,.0f}".format(report.total_conv_revenue) }}<span style="font-size:10px;font-weight:normal;">원</span></div>
+        </td>
+        <td style="width:25%; text-align:center; padding:12px 6px; background:#f8faf9; border-radius:8px; border:1px solid #e8ece9;">
+          <div style="font-size:10px; color:#888; margin-bottom:4px;">비즈머니 잔액</div>
+          <div style="font-size:16px; font-weight:bold; color:{% if report.bizmoney_balance and report.bizmoney_balance < 100000 %}#c0392b{% else %}#333{% endif %};">{% if report.bizmoney_balance %}{{ "{:,.0f}".format(report.bizmoney_balance) }}<span style="font-size:10px;font-weight:normal;">원</span>{% else %}-{% endif %}</div>
+        </td>
+        <td style="width:25%; text-align:center; padding:12px 6px; background:#f8faf9; border-radius:8px; border:1px solid #e8ece9;">
+          <div style="font-size:10px; color:#888; margin-bottom:4px;">평균 CPC</div>
+          <div style="font-size:16px; font-weight:bold; color:#333;">{% if report.total_clicks > 0 %}{{ "{:,.0f}".format(report.total_cost / report.total_clicks) }}<span style="font-size:10px;font-weight:normal;">원</span>{% else %}-{% endif %}</div>
+        </td>
+        <td style="width:25%; text-align:center; padding:12px 6px; background:#f8faf9; border-radius:8px; border:1px solid #e8ece9;">
+          <div style="font-size:10px; color:#888; margin-bottom:4px;">평균 CTR</div>
+          <div style="font-size:16px; font-weight:bold; color:#333;">{% if report.total_impressions > 0 %}{{ "%.2f"|format(report.total_clicks / report.total_impressions * 100) }}<span style="font-size:10px;font-weight:normal;">%</span>{% else %}-{% endif %}</div>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- ═══ 디바이스 분석 (PC vs 모바일) ═══ -->
+  {% set db = report.device_breakdown %}
+  {% set dev_total = db.pc_cost + db.mobile_cost %}
+  {% if dev_total > 0 %}
+  {% set pc_pct = (db.pc_cost / dev_total * 100)|round|int %}
+  {% set mob_pct = 100 - pc_pct %}
+  <div style="padding:8px 32px 20px;">
+    <h2 style="font-size:15px; color:#333; margin:0 0 12px; padding-bottom:8px; border-bottom:2px solid #1a472a;">PC vs 모바일</h2>
+    <!-- 비율 바 -->
+    <table style="width:100%; border-collapse:collapse;"><tr>
+      <td style="width:{{ pc_pct }}%; background:#1a472a; height:28px; border-radius:6px 0 0 6px; text-align:center; color:#fff; font-size:11px; font-weight:600;">PC {{ pc_pct }}%</td>
+      <td style="width:{{ mob_pct }}%; background:#3b82f6; height:28px; border-radius:0 6px 6px 0; text-align:center; color:#fff; font-size:11px; font-weight:600;">Mobile {{ mob_pct }}%</td>
+    </tr></table>
+    <!-- 상세 비교 -->
+    <table style="width:100%; border-collapse:collapse; font-size:12px; margin-top:10px;">
+      <tr style="background:#f4f6f5;">
+        <th style="padding:8px 10px; text-align:left; color:#555; border-bottom:1px solid #ddd; width:20%;"></th>
+        <th style="padding:8px 10px; text-align:right; color:#1a472a; border-bottom:1px solid #ddd; width:40%; font-weight:600;">PC</th>
+        <th style="padding:8px 10px; text-align:right; color:#3b82f6; border-bottom:1px solid #ddd; width:40%; font-weight:600;">모바일</th>
+      </tr>
+      <tr style="border-bottom:1px solid #f0f0f0;">
+        <td style="padding:7px 10px; color:#555;">비용</td>
+        <td style="padding:7px 10px; text-align:right; font-weight:600;">{{ "{:,.0f}".format(db.pc_cost) }}원</td>
+        <td style="padding:7px 10px; text-align:right; font-weight:600;">{{ "{:,.0f}".format(db.mobile_cost) }}원</td>
+      </tr>
+      <tr style="border-bottom:1px solid #f0f0f0; background:#fafbfa;">
+        <td style="padding:7px 10px; color:#555;">노출</td>
+        <td style="padding:7px 10px; text-align:right;">{{ "{:,}".format(db.pc_impressions) }}</td>
+        <td style="padding:7px 10px; text-align:right;">{{ "{:,}".format(db.mobile_impressions) }}</td>
+      </tr>
+      <tr style="border-bottom:1px solid #f0f0f0;">
+        <td style="padding:7px 10px; color:#555;">클릭</td>
+        <td style="padding:7px 10px; text-align:right;">{{ "{:,}".format(db.pc_clicks) }}</td>
+        <td style="padding:7px 10px; text-align:right;">{{ "{:,}".format(db.mobile_clicks) }}</td>
+      </tr>
+      <tr style="border-bottom:1px solid #f0f0f0; background:#fafbfa;">
+        <td style="padding:7px 10px; color:#555;">CTR</td>
+        <td style="padding:7px 10px; text-align:right;">{{ "%.2f"|format(db.pc_ctr) }}%</td>
+        <td style="padding:7px 10px; text-align:right;">{{ "%.2f"|format(db.mobile_ctr) }}%</td>
+      </tr>
+      <tr style="border-bottom:1px solid #f0f0f0;">
+        <td style="padding:7px 10px; color:#555;">전환</td>
+        <td style="padding:7px 10px; text-align:right;">{{ "{:,}".format(db.pc_conversions) }}</td>
+        <td style="padding:7px 10px; text-align:right;">{{ "{:,}".format(db.mobile_conversions) }}</td>
+      </tr>
+      <tr style="border-bottom:1px solid #f0f0f0; background:#fafbfa;">
+        <td style="padding:7px 10px; color:#555;">전환매출</td>
+        <td style="padding:7px 10px; text-align:right;">{{ "{:,.0f}".format(db.pc_conv_revenue) }}원</td>
+        <td style="padding:7px 10px; text-align:right;">{{ "{:,.0f}".format(db.mobile_conv_revenue) }}원</td>
+      </tr>
+      <tr>
+        <td style="padding:7px 10px; color:#555;">ROAS</td>
+        <td style="padding:7px 10px; text-align:right; font-weight:bold; color:{% if db.pc_roas >= 100 %}#1a472a{% elif db.pc_roas > 0 %}#c0392b{% else %}#999{% endif %};">{{ "{:,.0f}".format(db.pc_roas) }}%</td>
+        <td style="padding:7px 10px; text-align:right; font-weight:bold; color:{% if db.mobile_roas >= 100 %}#3b82f6{% elif db.mobile_roas > 0 %}#c0392b{% else %}#999{% endif %};">{{ "{:,.0f}".format(db.mobile_roas) }}%</td>
+      </tr>
+    </table>
+  </div>
+  {% endif %}
+
+  <!-- ═══ AI 인사이트 ═══ -->
+  {% if report.insights %}
+  <div style="padding:8px 32px 20px;">
+    <h2 style="font-size:15px; color:#333; margin:0 0 12px; padding-bottom:8px; border-bottom:2px solid #1a472a;">AI 인사이트</h2>
+    <div style="background:#f8faf9; border-radius:8px; padding:16px 20px; border-left:4px solid #1a472a;">
+      {% for insight in report.insights %}
+      <div style="font-size:12px; color:#333; line-height:1.6; {% if not loop.last %}margin-bottom:8px; padding-bottom:8px; border-bottom:1px solid #e8ece9;{% endif %}">
+        <span style="color:#1a472a; font-weight:600;">{{ loop.index }}.</span> {{ insight }}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ═══ 캠페인 성과 테이블 ═══ -->
+  <div style="padding:8px 32px 24px;">
+    <h2 style="font-size:15px; color:#333; margin:0 0 12px; padding-bottom:8px; border-bottom:2px solid #1a472a;">캠페인별 성과</h2>
+    <table style="width:100%; border-collapse:collapse; font-size:11px;">
+      <thead>
+        <tr style="background:#f4f6f5;">
+          <th style="padding:8px 5px; text-align:left; border-bottom:1px solid #ddd; color:#555; font-weight:600;">캠페인</th>
+          <th style="padding:8px 5px; text-align:left; border-bottom:1px solid #ddd; color:#555; font-weight:600;">유형</th>
+          <th style="padding:8px 5px; text-align:center; border-bottom:1px solid #ddd; color:#555; font-weight:600;">상태</th>
+          <th style="padding:8px 5px; text-align:right; border-bottom:1px solid #ddd; color:#555; font-weight:600;">노출</th>
+          <th style="padding:8px 5px; text-align:right; border-bottom:1px solid #ddd; color:#555; font-weight:600;">클릭</th>
+          <th style="padding:8px 5px; text-align:right; border-bottom:1px solid #ddd; color:#555; font-weight:600;">비용</th>
+          <th style="padding:8px 5px; text-align:right; border-bottom:1px solid #ddd; color:#555; font-weight:600;">예산</th>
+          <th style="padding:8px 5px; text-align:right; border-bottom:1px solid #ddd; color:#555; font-weight:600;">전환</th>
+          <th style="padding:8px 5px; text-align:right; border-bottom:1px solid #ddd; color:#555; font-weight:600;">ROAS</th>
+          <th style="padding:8px 5px; text-align:center; border-bottom:1px solid #ddd; color:#555; font-weight:600;">제어</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in report.campaigns %}
+        <tr style="border-bottom:1px solid #f0f0f0;">
+          <td style="padding:7px 5px; color:#333; font-weight:500; max-width:130px; overflow:hidden; text-overflow:ellipsis;">{{ c.campaign_name }}</td>
+          <td style="padding:7px 5px; color:#888; font-size:10px;">{{ c.campaign_type }}</td>
+          <td style="padding:7px 5px; text-align:center;"><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:{% if c.status == 'ELIGIBLE' %}#10b981{% elif c.status == 'PAUSED' %}#f59e0b{% else %}#ccc{% endif %};"></span></td>
+          <td style="padding:7px 5px; text-align:right; color:#555;">{{ "{:,}".format(c.impressions) }}</td>
+          <td style="padding:7px 5px; text-align:right; color:#555;">{{ "{:,}".format(c.clicks) }}</td>
+          <td style="padding:7px 5px; text-align:right; font-weight:600; color:#333;">{{ "{:,.0f}".format(c.cost) }}</td>
+          <td style="padding:7px 5px; text-align:right; color:#888; font-size:10px;">{% if c.daily_budget > 0 %}{{ "{:,.0f}".format(c.daily_budget) }}{% else %}-{% endif %}</td>
+          <td style="padding:7px 5px; text-align:right; color:#555;">{{ "{:,}".format(c.conversions) }}</td>
+          <td style="padding:7px 5px; text-align:right; font-weight:600; color:{% if c.roas >= 100 %}#1a472a{% elif c.roas > 0 %}#c0392b{% else %}#999{% endif %};">{{ "{:,.0f}".format(c.roas) }}%</td>
+          <td style="padding:7px 5px; text-align:center;">
+            {% if c.status == 'ELIGIBLE' %}
+            <a href="{{ server_url }}/campaign/{{ c.campaign_id }}/toggle?action=pause" style="display:inline-block; padding:3px 8px; background:#ef4444; color:#fff; border-radius:4px; font-size:9px; text-decoration:none; font-weight:600;">OFF</a>
+            {% elif c.status == 'PAUSED' %}
+            <a href="{{ server_url }}/campaign/{{ c.campaign_id }}/toggle?action=resume" style="display:inline-block; padding:3px 8px; background:#10b981; color:#fff; border-radius:4px; font-size:9px; text-decoration:none; font-weight:600;">ON</a>
+            {% else %}
+            <span style="color:#ccc; font-size:9px;">-</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr style="background:#f4f6f5; font-weight:bold;">
+          <td style="padding:8px 5px; color:#333;" colspan="3">합계</td>
+          <td style="padding:8px 5px; text-align:right;">{{ "{:,}".format(report.total_impressions) }}</td>
+          <td style="padding:8px 5px; text-align:right;">{{ "{:,}".format(report.total_clicks) }}</td>
+          <td style="padding:8px 5px; text-align:right; color:#1a472a;">{{ "{:,.0f}".format(report.total_cost) }}</td>
+          <td style="padding:8px 5px; text-align:right;"></td>
+          <td style="padding:8px 5px; text-align:right;">{{ "{:,}".format(report.total_conversions) }}</td>
+          <td style="padding:8px 5px; text-align:right; color:#1a472a;">{{ "{:,.0f}".format(report.total_roas) }}%</td>
+          <td style="padding:8px 5px;"></td>
+        </tr>
+      </tfoot>
+    </table>
+    <div style="margin-top:6px; font-size:10px; color:#999;">
+      * 캠페인 ON/OFF 버튼은 대시보드 서버가 실행 중일 때 작동합니다. ({{ server_url }})
+    </div>
+  </div>
+
+  <!-- ═══ 광고그룹별 성과 테이블 ═══ -->
+  {% if report.adgroups %}
+  {% set ag_sort_labels = {"cost":"비용","impressions":"노출","clicks":"클릭","ctr":"CTR","cpc":"CPC","conversions":"전환","conv_revenue":"전환매출","roas":"ROAS","avg_rank":"순위","bid_amt":"입찰가"} %}
+  {% set ag_sort_by = sort_options.get("adgroup_sort_by","cost") if sort_options else "cost" %}
+  {% set ag_sort_order = sort_options.get("adgroup_sort_order","desc") if sort_options else "desc" %}
+  {% set ag_arrow = "▼" if ag_sort_order == "desc" else "▲" %}
+  <div style="padding:0 32px 24px;">
+    <h2 style="font-size:15px; color:#333; margin:0 0 12px; padding-bottom:8px; border-bottom:2px solid #1a472a;">광고그룹별 성과 <span style="font-size:12px; color:#888; font-weight:normal;">({{ [report.adgroups|length, 30]|min }}개 / {{ ag_sort_labels.get(ag_sort_by,"비용") }} {{ "내림" if ag_sort_order == "desc" else "오름" }}차순)</span></h2>
+    <table style="width:100%; border-collapse:collapse; font-size:11px;">
+      <thead>
+        <tr style="background:#f4f6f5;">
+          <th style="padding:8px 4px; text-align:left; border-bottom:1px solid #ddd; color:#555; font-weight:600;">광고그룹</th>
+          <th style="padding:8px 4px; text-align:right; border-bottom:1px solid #ddd; color:{% if ag_sort_by == 'impressions' %}#1a472a{% else %}#555{% endif %}; font-weight:600;">노출{% if ag_sort_by == 'impressions' %} {{ ag_arrow }}{% endif %}</th>
+          <th style="padding:8px 4px; text-align:right; border-bottom:1px solid #ddd; color:{% if ag_sort_by == 'clicks' %}#1a472a{% else %}#555{% endif %}; font-weight:600;">클릭{% if ag_sort_by == 'clicks' %} {{ ag_arrow }}{% endif %}</th>
+          <th style="padding:8px 4px; text-align:right; border-bottom:1px solid #ddd; color:{% if ag_sort_by == 'cpc' %}#1a472a{% else %}#555{% endif %}; font-weight:600;">CPC{% if ag_sort_by == 'cpc' %} {{ ag_arrow }}{% endif %}</th>
+          <th style="padding:8px 4px; text-align:right; border-bottom:1px solid #ddd; color:{% if ag_sort_by == 'cost' %}#1a472a{% else %}#555{% endif %}; font-weight:600;">비용{% if ag_sort_by == 'cost' %} {{ ag_arrow }}{% endif %}</th>
+          <th style="padding:8px 4px; text-align:right; border-bottom:1px solid #ddd; color:#555; font-weight:600;">입찰</th>
+          <th style="padding:8px 4px; text-align:right; border-bottom:1px solid #ddd; color:{% if ag_sort_by == 'conversions' %}#1a472a{% else %}#555{% endif %}; font-weight:600;">전환{% if ag_sort_by == 'conversions' %} {{ ag_arrow }}{% endif %}</th>
+          <th style="padding:8px 4px; text-align:right; border-bottom:1px solid #ddd; color:{% if ag_sort_by == 'roas' %}#1a472a{% else %}#555{% endif %}; font-weight:600;">ROAS{% if ag_sort_by == 'roas' %} {{ ag_arrow }}{% endif %}</th>
+          <th style="padding:8px 4px; text-align:right; border-bottom:1px solid #ddd; color:#555; font-weight:600;">순위</th>
+          <th style="padding:8px 4px; text-align:center; border-bottom:1px solid #ddd; color:#555; font-weight:600;">제어</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ag in report.adgroups[:30] %}
+        <tr style="border-bottom:1px solid #f0f0f0;{% if loop.index is odd %} background:#fafbfa;{% endif %}">
+          <td style="padding:6px 4px; color:#333; font-weight:500; max-width:140px; overflow:hidden; text-overflow:ellipsis;">
+            <span style="display:inline-block; width:7px; height:7px; border-radius:50%; background:{% if ag.status == 'ELIGIBLE' %}#10b981{% elif ag.status == 'PAUSED' %}#f59e0b{% else %}#ccc{% endif %}; margin-right:3px; vertical-align:middle;"></span>
+            {{ ag.adgroup_name }}
+          </td>
+          <td style="padding:6px 4px; text-align:right; color:#555;">{{ "{:,}".format(ag.impressions) }}</td>
+          <td style="padding:6px 4px; text-align:right; color:#555;">{{ "{:,}".format(ag.clicks) }}</td>
+          <td style="padding:6px 4px; text-align:right; color:#555;">{{ "{:,.0f}".format(ag.cpc) }}</td>
+          <td style="padding:6px 4px; text-align:right; font-weight:600; color:#333;">{{ "{:,.0f}".format(ag.cost) }}</td>
+          <td style="padding:6px 4px; text-align:right; color:#888; font-size:10px;">{% if ag.bid_amt > 0 %}{{ "{:,.0f}".format(ag.bid_amt) }}{% else %}-{% endif %}</td>
+          <td style="padding:6px 4px; text-align:right; color:#555;">{{ "{:,}".format(ag.conversions) }}</td>
+          <td style="padding:6px 4px; text-align:right; font-weight:600; color:{% if ag.roas >= 100 %}#1a472a{% elif ag.roas > 0 %}#c0392b{% else %}#999{% endif %};">{{ "{:,.0f}".format(ag.roas) }}%</td>
+          <td style="padding:6px 4px; text-align:right; color:#555; font-size:10px;">{% if ag.avg_rank > 0 %}{{ "%.1f"|format(ag.avg_rank) }}{% else %}-{% endif %}</td>
+          <td style="padding:6px 4px; text-align:center;">
+            {% if ag.status == 'ELIGIBLE' %}
+            <a href="{{ server_url }}/adgroup/{{ ag.adgroup_id }}/toggle?action=pause" style="display:inline-block; padding:3px 8px; background:#ef4444; color:#fff; border-radius:4px; font-size:9px; text-decoration:none; font-weight:600;">OFF</a>
+            {% elif ag.status == 'PAUSED' %}
+            <a href="{{ server_url }}/adgroup/{{ ag.adgroup_id }}/toggle?action=resume" style="display:inline-block; padding:3px 8px; background:#10b981; color:#fff; border-radius:4px; font-size:9px; text-decoration:none; font-weight:600;">ON</a>
+            {% else %}
+            <span style="color:#ccc; font-size:9px;">-</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% if report.adgroups|length > 30 %}
+    <div style="padding:6px 0; font-size:11px; color:#999; text-align:center;">... 외 {{ report.adgroups|length - 30 }}개 광고그룹</div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <!-- ═══ 파워링크 키워드 성과 ═══ -->
+  {% set pl_keywords = report.keywords|selectattr('source', 'equalto', 'powerlink')|list %}
+  {% if pl_keywords %}
+  {% set kw_sort_labels = {"cost":"비용","impressions":"노출","clicks":"클릭","ctr":"CTR","cpc":"CPC","conversions":"전환","conv_revenue":"전환매출","roas":"ROAS","avg_rank":"순위","quality_index":"품질","bid_amt":"입찰가"} %}
+  {% set kw_sort_by = sort_options.get("keyword_sort_by","cost") if sort_options else "cost" %}
+  {% set kw_sort_order = sort_options.get("keyword_sort_order","desc") if sort_options else "desc" %}
+  {% set kw_arrow = "▼" if kw_sort_order == "desc" else "▲" %}
+  <div style="padding:0 32px 24px;">
+    <h2 style="font-size:15px; color:#333; margin:0 0 12px; padding-bottom:8px; border-bottom:2px solid #1a472a;">
+      <span style="display:inline-block; background:#1a472a; color:#fff; font-size:10px; padding:2px 8px; border-radius:10px; vertical-align:middle; margin-right:6px;">파워링크</span>
+      키워드 성과 <span style="font-size:12px; color:#888; font-weight:normal;">(상위 {{ [pl_keywords|length, 50]|min }}개)</span>
+    </h2>
+    <table style="width:100%; border-collapse:collapse; font-size:11px;">
+      <thead>
+        <tr style="background:#f4f6f5;">
+          <th style="padding:8px 3px; text-align:left; border-bottom:1px solid #ddd; color:#555; font-weight:600;">#</th>
+          <th style="padding:8px 3px; text-align:left; border-bottom:1px solid #ddd; color:#555; font-weight:600;">키워드</th>
+          <th style="padding:8px 3px; text-align:center; border-bottom:1px solid #ddd; color:#555; font-weight:600;">QI</th>
+          <th style="padding:8px 3px; text-align:right; border-bottom:1px solid #ddd; color:#555; font-weight:600;">노출</th>
+          <th style="padding:8px 3px; text-align:right; border-bottom:1px solid #ddd; color:#555; font-weight:600;">클릭</th>
+          <th style="padding:8px 3px; text-align:right; border-bottom:1px solid #ddd; color:#555; font-weight:600;">CPC</th>
+          <th style="padding:8px 3px; text-align:right; border-bottom:1px solid #ddd; color:#555; font-weight:600;">비용</th>
+          <th style="padding:8px 3px; text-align:right; border-bottom:1px solid #ddd; color:#555; font-weight:600;">입찰</th>
+          <th style="padding:8px 3px; text-align:right; border-bottom:1px solid #ddd; color:#555; font-weight:600;">전환</th>
+          <th style="padding:8px 3px; text-align:right; border-bottom:1px solid #ddd; color:#555; font-weight:600;">ROAS</th>
+          <th style="padding:8px 3px; text-align:right; border-bottom:1px solid #ddd; color:#555; font-weight:600;">순위</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for kw in pl_keywords[:50] %}
+        <tr style="border-bottom:1px solid #f0f0f0;{% if loop.index is odd %} background:#fafbfa;{% endif %}">
+          <td style="padding:6px 3px; color:#999; font-size:10px;">{{ loop.index }}</td>
+          <td style="padding:6px 3px; color:#333; font-weight:500;">{{ kw.keyword }}</td>
+          <td style="padding:6px 3px; text-align:center;">{% if kw.quality_index > 0 %}<span style="display:inline-block; width:18px; height:18px; border-radius:50%; background:{% if kw.quality_index >= 7 %}#10b981{% elif kw.quality_index >= 4 %}#f59e0b{% else %}#ef4444{% endif %}; color:#fff; font-size:9px; text-align:center; line-height:18px;">{{ kw.quality_index }}</span>{% else %}<span style="color:#ccc;">-</span>{% endif %}</td>
+          <td style="padding:6px 3px; text-align:right; color:#555;">{{ "{:,}".format(kw.impressions) }}</td>
+          <td style="padding:6px 3px; text-align:right; color:#555;">{{ "{:,}".format(kw.clicks) }}</td>
+          <td style="padding:6px 3px; text-align:right; color:#555;">{{ "{:,.0f}".format(kw.cpc) }}</td>
+          <td style="padding:6px 3px; text-align:right; font-weight:600; color:#333;">{{ "{:,.0f}".format(kw.cost) }}</td>
+          <td style="padding:6px 3px; text-align:right; color:#888; font-size:10px;">{% if kw.bid_amt > 0 %}{{ "{:,.0f}".format(kw.bid_amt) }}{% else %}-{% endif %}</td>
+          <td style="padding:6px 3px; text-align:right; color:#555;">{{ "{:,}".format(kw.conversions) }}</td>
+          <td style="padding:6px 3px; text-align:right; font-weight:600; color:{% if kw.roas >= 100 %}#1a472a{% elif kw.roas > 0 %}#c0392b{% else %}#999{% endif %};">{{ "{:,.0f}".format(kw.roas) }}%</td>
+          <td style="padding:6px 3px; text-align:right; color:#555; font-size:10px;">{% if kw.avg_rank > 0 %}{{ "%.1f"|format(kw.avg_rank) }}{% else %}-{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% if pl_keywords|length > 50 %}
+    <div style="padding:6px 0; font-size:11px; color:#999; text-align:center;">... 외 {{ pl_keywords|length - 50 }}개 파워링크 키워드</div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <!-- ═══ 쇼핑검색 키워드 성과 ═══ -->
+  {% set sh_keywords = report.keywords|selectattr('source', 'equalto', 'shopping')|list %}
+  {% if sh_keywords %}
+  <div style="padding:0 32px 24px;">
+    <h2 style="font-size:15px; color:#333; margin:0 0 12px; padding-bottom:8px; border-bottom:2px solid #3b82f6;">
+      <span style="display:inline-block; background:#3b82f6; color:#fff; font-size:10px; padding:2px 8px; border-radius:10px; vertical-align:middle; margin-right:6px;">쇼핑검색</span>
+      키워드 성과 <span style="font-size:12px; color:#888; font-weight:normal;">(상위 {{ [sh_keywords|length, 50]|min }}개)</span>
+    </h2>
+    <table style="width:100%; border-collapse:collapse; font-size:11px;">
+      <thead>
+        <tr style="background:#f0f5ff;">
+          <th style="padding:8px 3px; text-align:left; border-bottom:1px solid #ddd; color:#555; font-weight:600;">#</th>
+          <th style="padding:8px 3px; text-align:left; border-bottom:1px solid #ddd; color:#555; font-weight:600;">검색어</th>
+          <th style="padding:8px 3px; text-align:left; border-bottom:1px solid #ddd; color:#555; font-weight:600;">캠페인</th>
+          <th style="padding:8px 3px; text-align:right; border-bottom:1px solid #ddd; color:#555; font-weight:600;">노출</th>
+          <th style="padding:8px 3px; text-align:right; border-bottom:1px solid #ddd; color:#555; font-weight:600;">클릭</th>
+          <th style="padding:8px 3px; text-align:right; border-bottom:1px solid #ddd; color:#555; font-weight:600;">CPC</th>
+          <th style="padding:8px 3px; text-align:right; border-bottom:1px solid #ddd; color:#555; font-weight:600;">비용</th>
+          <th style="padding:8px 3px; text-align:right; border-bottom:1px solid #ddd; color:#555; font-weight:600;">전환</th>
+          <th style="padding:8px 3px; text-align:right; border-bottom:1px solid #ddd; color:#555; font-weight:600;">전환매출</th>
+          <th style="padding:8px 3px; text-align:right; border-bottom:1px solid #ddd; color:#555; font-weight:600;">ROAS</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for kw in sh_keywords[:50] %}
+        <tr style="border-bottom:1px solid #f0f0f0;{% if loop.index is odd %} background:#fafbfa;{% endif %}">
+          <td style="padding:6px 3px; color:#999; font-size:10px;">{{ loop.index }}</td>
+          <td style="padding:6px 3px; color:#333; font-weight:500;">{{ kw.keyword }}</td>
+          <td style="padding:6px 3px; color:#888; font-size:10px; max-width:100px; overflow:hidden; text-overflow:ellipsis;">{{ kw.campaign_name }}</td>
+          <td style="padding:6px 3px; text-align:right; color:#555;">{{ "{:,}".format(kw.impressions) }}</td>
+          <td style="padding:6px 3px; text-align:right; color:#555;">{{ "{:,}".format(kw.clicks) }}</td>
+          <td style="padding:6px 3px; text-align:right; color:#555;">{{ "{:,.0f}".format(kw.cpc) }}</td>
+          <td style="padding:6px 3px; text-align:right; font-weight:600; color:#333;">{{ "{:,.0f}".format(kw.cost) }}</td>
+          <td style="padding:6px 3px; text-align:right; color:#555;">{{ "{:,}".format(kw.conversions) }}</td>
+          <td style="padding:6px 3px; text-align:right; color:#555;">{{ "{:,.0f}".format(kw.conv_revenue) }}</td>
+          <td style="padding:6px 3px; text-align:right; font-weight:600; color:{% if kw.roas >= 100 %}#3b82f6{% elif kw.roas > 0 %}#c0392b{% else %}#999{% endif %};">{{ "{:,.0f}".format(kw.roas) }}%</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% if sh_keywords|length > 50 %}
+    <div style="padding:6px 0; font-size:11px; color:#999; text-align:center;">... 외 {{ sh_keywords|length - 50 }}개 쇼핑 키워드</div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <!-- ═══ 시간대별 성과 ═══ -->
+  {% if report.hourly_stats %}
+  {% set max_h_cost = report.hourly_stats|map(attribute='cost')|max %}
+  {% if max_h_cost and max_h_cost > 0 %}
+  <div style="padding:8px 32px 24px;">
+    <h2 style="font-size:15px; color:#333; margin:0 0 12px; padding-bottom:8px; border-bottom:2px solid #1a472a;">시간대별 성과 <span style="font-size:12px; color:#888; font-weight:normal;">(비용 기준)</span></h2>
+    <table style="width:100%; border-collapse:collapse;">
+      <tr>
+        {% for h in report.hourly_stats %}
+        {% set bar_h = (h.cost / max_h_cost * 50)|round|int if max_h_cost > 0 else 0 %}
+        {% set is_peak = h.cost >= max_h_cost * 0.8 %}
+        <td style="vertical-align:bottom; text-align:center; padding:0 1px; width:4.16%;">
+          <div style="background:{% if is_peak %}#c0392b{% else %}#1a472a{% endif %}; width:100%; height:{{ bar_h }}px; border-radius:2px 2px 0 0; min-height:{% if h.cost > 0 %}2{% else %}0{% endif %}px;"></div>
+        </td>
+        {% endfor %}
+      </tr>
+      <tr>
+        {% for h in report.hourly_stats %}
+        <td style="text-align:center; font-size:8px; color:#999; padding-top:3px;">{% if h.hour % 3 == 0 %}{{ h.hour }}{% endif %}</td>
+        {% endfor %}
+      </tr>
+    </table>
+    <!-- 피크 시간대 요약 -->
+    {% set sorted_hours = report.hourly_stats|sort(attribute='cost', reverse=True) %}
+    {% set peak3 = sorted_hours[:3] %}
+    <div style="margin-top:8px; font-size:11px; color:#555;">
+      피크 시간대:
+      {% for h in peak3 %}
+      <span style="display:inline-block; background:{% if loop.first %}#c0392b{% else %}#f0f0f0{% endif %}; color:{% if loop.first %}#fff{% else %}#555{% endif %}; padding:2px 6px; border-radius:10px; font-size:10px; margin-right:4px;">{{ h.hour }}시 {{ "{:,.0f}".format(h.cost) }}원</span>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+  {% endif %}
+
+  <!-- ═══ 요일별 성과 ═══ -->
+  {% if report.day_of_week_stats %}
+  {% set max_d_cost = report.day_of_week_stats|map(attribute='cost')|max %}
+  {% if max_d_cost and max_d_cost > 0 %}
+  <div style="padding:0 32px 24px;">
+    <h2 style="font-size:15px; color:#333; margin:0 0 12px; padding-bottom:8px; border-bottom:2px solid #1a472a;">요일별 성과</h2>
+    <table style="width:100%; border-collapse:collapse; font-size:12px;">
+      {% for d in report.day_of_week_stats %}
+      {% set bar_w = (d.cost / max_d_cost * 100)|round|int if max_d_cost > 0 else 0 %}
+      {% set is_weekend = d.day >= 6 %}
+      <tr style="border-bottom:1px solid #f0f0f0;">
+        <td style="padding:6px 8px; width:30px; font-weight:600; color:{% if is_weekend %}#3b82f6{% else %}#333{% endif %};">{{ d.day_name }}</td>
+        <td style="padding:6px 4px;">
+          <div style="background:#e8ece9; border-radius:4px; height:18px; overflow:hidden;">
+            <div style="background:{% if is_weekend %}#3b82f6{% else %}#1a472a{% endif %}; height:18px; width:{{ bar_w }}%; border-radius:4px; min-width:{% if d.cost > 0 %}2{% else %}0{% endif %}px;"></div>
+          </div>
+        </td>
+        <td style="padding:6px 8px; text-align:right; width:80px; font-weight:600; color:#333; font-size:11px;">{{ "{:,.0f}".format(d.cost) }}원</td>
+        <td style="padding:6px 8px; text-align:right; width:60px; color:#555; font-size:10px;">{{ "{:,}".format(d.clicks) }}클릭</td>
+        <td style="padding:6px 8px; text-align:right; width:50px; color:#555; font-size:10px;">{{ "{:,}".format(d.conversions) }}전환</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+  {% endif %}
+  {% endif %}
+
+  <!-- ═══ 지역별 성과 ═══ -->
+  {% if report.region_stats %}
+  {% set region_total_cost = report.region_stats|map(attribute='cost')|sum %}
+  {% if region_total_cost > 0 %}
+  <div style="padding:0 32px 24px;">
+    <h2 style="font-size:15px; color:#333; margin:0 0 12px; padding-bottom:8px; border-bottom:2px solid #1a472a;">지역별 성과 <span style="font-size:12px; color:#888; font-weight:normal;">(Top 10)</span></h2>
+    <table style="width:100%; border-collapse:collapse; font-size:11px;">
+      <thead>
+        <tr style="background:#f4f6f5;">
+          <th style="padding:8px 6px; text-align:left; border-bottom:1px solid #ddd; color:#555; font-weight:600;">지역</th>
+          <th style="padding:8px 6px; text-align:right; border-bottom:1px solid #ddd; color:#555; font-weight:600;">비용</th>
+          <th style="padding:8px 6px; border-bottom:1px solid #ddd; color:#555; font-weight:600; width:100px;">비중</th>
+          <th style="padding:8px 6px; text-align:right; border-bottom:1px solid #ddd; color:#555; font-weight:600;">클릭</th>
+          <th style="padding:8px 6px; text-align:right; border-bottom:1px solid #ddd; color:#555; font-weight:600;">CTR</th>
+          <th style="padding:8px 6px; text-align:right; border-bottom:1px solid #ddd; color:#555; font-weight:600;">전환</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in report.region_stats[:10] %}
+        {% set r_pct = (r.cost / region_total_cost * 100)|round|int if region_total_cost > 0 else 0 %}
+        <tr style="border-bottom:1px solid #f0f0f0;{% if loop.index is odd %} background:#fafbfa;{% endif %}">
+          <td style="padding:6px 6px; color:#333; font-weight:500;">{{ r.region_name }}</td>
+          <td style="padding:6px 6px; text-align:right; font-weight:600;">{{ "{:,.0f}".format(r.cost) }}</td>
+          <td style="padding:6px 6px;">
+            <div style="background:#e8ece9; border-radius:3px; height:12px; overflow:hidden;">
+              <div style="background:#1a472a; height:12px; width:{{ r_pct }}%; border-radius:3px;"></div>
+            </div>
+          </td>
+          <td style="padding:6px 6px; text-align:right; color:#555;">{{ "{:,}".format(r.clicks) }}</td>
+          <td style="padding:6px 6px; text-align:right; color:#555;">{{ "%.2f"|format(r.ctr) }}%</td>
+          <td style="padding:6px 6px; text-align:right; color:#555;">{{ "{:,}".format(r.conversions) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+  {% endif %}
+
+  <!-- ═══ 검색어 분석 ═══ -->
+  {% if report.search_terms %}
+  <div style="padding:0 32px 24px;">
+    <h2 style="font-size:15px; color:#333; margin:0 0 12px; padding-bottom:8px; border-bottom:2px solid #1a472a;">실제 검색어 분석 <span style="font-size:12px; color:#888; font-weight:normal;">(Top {{ [report.search_terms|length, 30]|min }})</span></h2>
+    <table style="width:100%; border-collapse:collapse; font-size:11px;">
+      <thead>
+        <tr style="background:#f4f6f5;">
+          <th style="padding:8px 4px; text-align:left; border-bottom:1px solid #ddd; color:#555; font-weight:600;">#</th>
+          <th style="padding:8px 4px; text-align:left; border-bottom:1px solid #ddd; color:#555; font-weight:600;">검색어</th>
+          <th style="padding:8px 4px; text-align:left; border-bottom:1px solid #ddd; color:#555; font-weight:600;">매칭 키워드</th>
+          <th style="padding:8px 4px; text-align:right; border-bottom:1px solid #ddd; color:#555; font-weight:600;">노출</th>
+          <th style="padding:8px 4px; text-align:right; border-bottom:1px solid #ddd; color:#555; font-weight:600;">클릭</th>
+          <th style="padding:8px 4px; text-align:right; border-bottom:1px solid #ddd; color:#555; font-weight:600;">비용</th>
+          <th style="padding:8px 4px; text-align:right; border-bottom:1px solid #ddd; color:#555; font-weight:600;">전환</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in report.search_terms[:30] %}
+        {% set is_waste = t.clicks >= 3 and t.conversions == 0 %}
+        <tr style="border-bottom:1px solid #f0f0f0;{% if loop.index is odd %} background:#fafbfa;{% endif %}{% if is_waste %} background:#fff5f5;{% endif %}">
+          <td style="padding:6px 4px; color:#999; font-size:10px;">{{ loop.index }}</td>
+          <td style="padding:6px 4px; color:#333; font-weight:500;">{{ t.search_term }}{% if is_waste %} <span style="font-size:8px; color:#ef4444; font-weight:normal;">낭비</span>{% endif %}</td>
+          <td style="padding:6px 4px; color:#888; font-size:10px;">{{ t.keyword }}</td>
+          <td style="padding:6px 4px; text-align:right; color:#555;">{{ "{:,}".format(t.impressions) }}</td>
+          <td style="padding:6px 4px; text-align:right; color:#555;">{{ "{:,}".format(t.clicks) }}</td>
+          <td style="padding:6px 4px; text-align:right; font-weight:600; color:#333;">{{ "{:,.0f}".format(t.cost) }}</td>
+          <td style="padding:6px 4px; text-align:right; color:{% if t.conversions > 0 %}#1a472a{% else %}#999{% endif %};">{{ "{:,}".format(t.conversions) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% if report.search_terms|length > 30 %}
+    <div style="padding:6px 0; font-size:11px; color:#999; text-align:center;">... 외 {{ report.search_terms|length - 30 }}개 검색어</div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <!-- ═══ 전환 상세 분석 ═══ -->
+  {% if report.conversion_details %}
+  {% set conv_total = report.conversion_details|map(attribute='total_conversions')|sum %}
+  <div style="padding:0 32px 24px;">
+    <h2 style="font-size:15px; color:#333; margin:0 0 12px; padding-bottom:8px; border-bottom:2px solid #1a472a;">전환 상세 분석 <span style="font-size:12px; color:#888; font-weight:normal;">(직접/간접 전환)</span></h2>
+    <table style="width:100%; border-collapse:collapse; font-size:12px;">
+      <thead>
+        <tr style="background:#f4f6f5;">
+          <th style="padding:8px 8px; text-align:left; border-bottom:1px solid #ddd; color:#555; font-weight:600;">전환 유형</th>
+          <th style="padding:8px 8px; text-align:right; border-bottom:1px solid #ddd; color:#555; font-weight:600;">직접</th>
+          <th style="padding:8px 8px; text-align:right; border-bottom:1px solid #ddd; color:#555; font-weight:600;">간접</th>
+          <th style="padding:8px 8px; text-align:right; border-bottom:1px solid #ddd; color:#555; font-weight:600;">합계</th>
+          <th style="padding:8px 8px; border-bottom:1px solid #ddd; color:#555; font-weight:600; width:120px;">비율</th>
+          <th style="padding:8px 8px; text-align:right; border-bottom:1px solid #ddd; color:#555; font-weight:600;">매출</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for cv in report.conversion_details %}
+        {% set direct_pct = (cv.direct_conversions / cv.total_conversions * 100)|round|int if cv.total_conversions > 0 else 0 %}
+        <tr style="border-bottom:1px solid #f0f0f0;{% if loop.index is odd %} background:#fafbfa;{% endif %}">
+          <td style="padding:7px 8px; color:#333; font-weight:500;">{{ cv.conversion_type }}</td>
+          <td style="padding:7px 8px; text-align:right; color:#1a472a; font-weight:600;">{{ "{:,}".format(cv.direct_conversions) }}</td>
+          <td style="padding:7px 8px; text-align:right; color:#888;">{{ "{:,}".format(cv.indirect_conversions) }}</td>
+          <td style="padding:7px 8px; text-align:right; font-weight:bold;">{{ "{:,}".format(cv.total_conversions) }}</td>
+          <td style="padding:7px 8px;">
+            <div style="background:#e8ece9; border-radius:3px; height:12px; overflow:hidden; display:flex;">
+              <div style="background:#1a472a; height:12px; width:{{ direct_pct }}%;"></div>
+              <div style="background:#93c5fd; height:12px; width:{{ 100 - direct_pct }}%;"></div>
+            </div>
+          </td>
+          <td style="padding:7px 8px; text-align:right; color:#333;">{{ "{:,.0f}".format(cv.total_revenue) }}원</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div style="margin-top:6px; font-size:10px; color:#888;">
+      <span style="display:inline-block; width:10px; height:10px; background:#1a472a; border-radius:2px; vertical-align:middle;"></span> 직접전환 &nbsp;
+      <span style="display:inline-block; width:10px; height:10px; background:#93c5fd; border-radius:2px; vertical-align:middle;"></span> 간접전환
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ═══ 푸터 ═══ -->
+  <div style="padding:16px 32px; background:#f4f6f5; font-size:11px; color:#999; text-align:center; border-top:1px solid #e8ece9;">
+    이 리포트는 네이버 검색광고 API에서 자동으로 생성되었습니다. &nbsp;|&nbsp; 또율아빠 광고 자동화
+  </div>
+
+</div>
+</body>
+</html>

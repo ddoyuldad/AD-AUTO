@@ -1,0 +1,2340 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>또율아빠 광고 보고서 자동화 - 네이버 광고 대시보드</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<style>
+  :root {
+    /* Color Tokens */
+    --bg-base: #f8f9fb;
+    --bg-surface: #ffffff;
+    --bg-elevated: #ffffff;
+    --bg-subtle: #f1f3f5;
+    --bg-muted: #e9ecef;
+
+    --text-primary: #1a1d23;
+    --text-secondary: #5a6270;
+    --text-tertiary: #8b95a5;
+    --text-inverse: #ffffff;
+
+    --border-default: #e2e5ea;
+    --border-subtle: #eef0f3;
+
+    --accent: #0f7b3f;
+    --accent-hover: #0d6b36;
+    --accent-subtle: #e8f5ee;
+    --accent-muted: #d1eade;
+
+    --status-ok: #10b981;
+    --status-ok-bg: #ecfdf5;
+    --status-warn: #f59e0b;
+    --status-warn-bg: #fffbeb;
+    --status-error: #ef4444;
+    --status-error-bg: #fef2f2;
+    --status-info: #3b82f6;
+    --status-info-bg: #eff6ff;
+
+    /* Typography */
+    --font: 'Pretendard Variable', 'Pretendard', -apple-system, 'Malgun Gothic', sans-serif;
+    --text-xs: 11px;
+    --text-sm: 13px;
+    --text-base: 14px;
+    --text-md: 15px;
+    --text-lg: 18px;
+    --text-xl: 24px;
+    --text-2xl: 30px;
+
+    /* Spacing */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+    --space-8: 32px;
+    --space-10: 40px;
+
+    /* Radius */
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --radius-xl: 18px;
+    --radius-full: 9999px;
+
+    /* Shadow */
+    --shadow-xs: 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04);
+    --shadow-lg: 0 10px 30px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.04);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: var(--font); background: var(--bg-base); color: var(--text-primary); font-size: var(--text-base); line-height: 1.5; -webkit-font-smoothing: antialiased; }
+
+  /* ===== HEADER ===== */
+  .header {
+    background: var(--bg-surface); border-bottom: 1px solid var(--border-default);
+    padding: var(--space-5) var(--space-8);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .header-left { display: flex; align-items: center; gap: var(--space-4); }
+  .header-logo {
+    width: 32px; height: 32px; background: var(--accent); border-radius: var(--radius-sm);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .header-logo svg { width: 18px; height: 18px; fill: white; }
+  .header-title { font-size: var(--text-lg); font-weight: 700; color: var(--text-primary); }
+  .header-subtitle { font-size: var(--text-sm); color: var(--text-tertiary); margin-top: 1px; display: none; }
+
+  /* ===== PLATFORM TABS ===== */
+  .platform-tabs {
+    display: flex; gap: 0; background: var(--bg-surface);
+    border-bottom: 2px solid var(--border-default);
+    padding: 0 var(--space-8);
+  }
+  .platform-tab {
+    padding: 12px 24px; font-size: var(--text-sm); font-weight: 700;
+    color: var(--text-tertiary); cursor: pointer; border: none;
+    background: none; font-family: var(--font); position: relative;
+    transition: color 0.15s; display: flex; align-items: center; gap: 8px;
+  }
+  .platform-tab:hover { color: var(--text-primary); }
+  .platform-tab.active { color: var(--accent); }
+  .platform-tab.active::after {
+    content: ''; position: absolute; bottom: -2px; left: 0; right: 0;
+    height: 2px; background: var(--accent); border-radius: 1px;
+  }
+  .platform-tab .tab-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+  }
+  .platform-tab .tab-dot.naver { background: #03c75a; }
+  .platform-tab .tab-dot.gfa { background: #1a73e8; }
+  .platform-tab .tab-dot.coupang { background: #e4002b; }
+  .platform-panel { display: none; }
+  .platform-panel.active { display: block; }
+  .header-right { display: flex; align-items: center; gap: var(--space-4); }
+  .status-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 12px; border-radius: var(--radius-full);
+    font-size: var(--text-xs); font-weight: 600; letter-spacing: 0.02em;
+  }
+  .status-badge.live { background: var(--status-ok-bg); color: #047857; }
+  .status-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; animation: pulse-dot 2s infinite; }
+  @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+  .header-time { font-size: var(--text-xs); color: var(--text-tertiary); }
+
+  /* ===== LAYOUT ===== */
+  .container { max-width: 1080px; margin: 0 auto; padding: var(--space-8) var(--space-6); }
+
+  /* ===== KPI CARDS ===== */
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-4); margin-bottom: var(--space-6); }
+  .kpi-card {
+    background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg);
+    padding: var(--space-5); box-shadow: var(--shadow-xs);
+  }
+  .kpi-label { font-size: var(--text-xs); font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: var(--space-2); }
+  .kpi-value { font-size: var(--text-xl); font-weight: 800; color: var(--text-primary); line-height: 1.2; }
+  .kpi-meta { font-size: var(--text-xs); color: var(--text-tertiary); margin-top: var(--space-1); }
+
+  /* ===== SECTION ===== */
+  .section {
+    background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xs); margin-bottom: var(--space-6); overflow: hidden;
+  }
+  .section-header {
+    padding: var(--space-5) var(--space-6);
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .section-title-group { display: flex; align-items: center; gap: var(--space-3); }
+  .section-icon {
+    width: 34px; height: 34px; border-radius: var(--radius-md);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .section-icon svg { width: 18px; height: 18px; }
+  .section-icon.green { background: var(--accent-subtle); color: var(--accent); }
+  .section-icon.green svg { fill: var(--accent); }
+  .section-icon.blue { background: var(--status-info-bg); color: var(--status-info); }
+  .section-icon.blue svg { fill: var(--status-info); }
+  .section-icon.orange { background: var(--status-warn-bg); color: var(--status-warn); }
+  .section-icon.orange svg { fill: var(--status-warn); }
+  .section-title { font-size: var(--text-md); font-weight: 700; color: var(--text-primary); }
+  .section-desc { font-size: var(--text-xs); color: var(--text-tertiary); margin-top: 1px; }
+  .section-body { padding: var(--space-6); }
+
+  /* ===== ACCOUNT ROW ===== */
+  .acc-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: var(--space-4) var(--space-5); border-radius: var(--radius-md);
+    transition: background 0.15s;
+  }
+  .acc-row:hover { background: var(--bg-subtle); }
+  .acc-row + .acc-row { border-top: 1px solid var(--border-subtle); }
+  .acc-info { flex: 1; min-width: 0; }
+  .acc-name { font-size: var(--text-base); font-weight: 600; color: var(--text-primary); }
+  .acc-id { font-size: var(--text-xs); color: var(--text-tertiary); margin-top: 2px; }
+  .acc-metrics { display: flex; align-items: stretch; gap: 0; }
+  .metric { text-align: right; min-width: 160px; padding: var(--space-3) var(--space-5); border-left: 1px solid var(--border-subtle); display: flex; flex-direction: column; justify-content: center; }
+  .metric:first-child { border-left: none; }
+  .metric-value { font-size: var(--text-lg); font-weight: 800; line-height: 1.2; }
+  .metric-value.ok { color: var(--status-ok); }
+  .metric-value.warning { color: var(--status-warn); }
+  .metric-value.error { color: var(--status-error); }
+  .metric-value.info { color: var(--status-info); }
+  .metric-label { font-size: var(--text-xs); color: var(--text-tertiary); margin-top: 2px; }
+  .acc-actions { display: flex; gap: var(--space-2); margin-left: var(--space-4); }
+
+  /* ===== BUTTONS ===== */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 9px 18px; border: none; border-radius: var(--radius-sm);
+    font-size: var(--text-sm); font-weight: 600; cursor: pointer;
+    transition: all 0.15s; font-family: var(--font); white-space: nowrap;
+  }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+  .btn-primary { background: var(--accent); color: var(--text-inverse); }
+  .btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
+  .btn-primary svg { fill: white; }
+
+  .btn-secondary { background: var(--bg-subtle); color: var(--text-primary); }
+  .btn-secondary:hover:not(:disabled) { background: var(--bg-muted); }
+  .btn-secondary svg { fill: var(--text-secondary); }
+
+  .btn-ghost { background: transparent; color: var(--text-secondary); }
+  .btn-ghost:hover:not(:disabled) { background: var(--bg-subtle); color: var(--text-primary); }
+
+  .btn-danger { background: var(--status-error-bg); color: var(--status-error); }
+  .btn-danger:hover:not(:disabled) { background: #fee2e2; }
+
+  .btn-sm { padding: 6px 12px; font-size: var(--text-xs); }
+
+  /* ===== ACTION BAR ===== */
+  .action-bar { display: flex; align-items: center; gap: var(--space-3); padding-top: var(--space-5); }
+
+  /* ===== TOAST ===== */
+  .toast {
+    position: fixed; top: var(--space-5); right: var(--space-5);
+    padding: var(--space-3) var(--space-5); border-radius: var(--radius-md);
+    font-size: var(--text-sm); font-weight: 500; color: var(--text-inverse);
+    z-index: 1000; opacity: 0; transition: all 0.3s; transform: translateY(-8px);
+    max-width: 400px; box-shadow: var(--shadow-lg);
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+  .toast.success { background: #059669; }
+  .toast.error { background: var(--status-error); }
+  .toast.info { background: var(--status-info); }
+
+  /* ===== SPINNER ===== */
+  .spinner {
+    display: inline-block; width: 14px; height: 14px;
+    border: 2px solid rgba(255,255,255,0.3); border-top-color: currentColor;
+    border-radius: 50%; animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+  }
+  .spinner.dark { border-color: rgba(0,0,0,0.1); border-top-color: var(--text-secondary); }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ===== LOADING OVERLAY ===== */
+  .loading-overlay {
+    display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(255,255,255,0.7); backdrop-filter: blur(4px); z-index: 500;
+    justify-content: center; align-items: center;
+  }
+  .loading-overlay.show { display: flex; }
+  .loading-box { text-align: center; }
+  .loading-box .spinner { width: 28px; height: 28px; border-width: 3px; border-color: var(--border-default); border-top-color: var(--accent); margin-bottom: var(--space-3); }
+  .loading-box p { font-size: var(--text-sm); color: var(--text-secondary); font-weight: 500; }
+
+  /* ===== DATE & QUICK BUTTONS ===== */
+  .date-row { display: flex; gap: var(--space-3); align-items: end; flex-wrap: wrap; margin-bottom: var(--space-5); }
+  .form-field label { display: block; font-size: var(--text-xs); font-weight: 600; color: var(--text-tertiary); margin-bottom: var(--space-1); text-transform: uppercase; letter-spacing: 0.03em; }
+  .form-field input, .form-field select {
+    padding: 9px 12px; border: 1px solid var(--border-default); border-radius: var(--radius-sm);
+    font-size: var(--text-sm); font-family: var(--font); color: var(--text-primary);
+    background: var(--bg-surface); transition: border-color 0.15s;
+  }
+  .form-field input:focus, .form-field select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-subtle); }
+  .quick-btns { display: flex; gap: var(--space-1); }
+  .quick-btn {
+    padding: 8px 14px; border: 1px solid var(--border-default); border-radius: var(--radius-full);
+    font-size: var(--text-xs); font-weight: 500; cursor: pointer;
+    background: var(--bg-surface); color: var(--text-secondary); font-family: var(--font);
+    transition: all 0.15s;
+  }
+  .quick-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-subtle); }
+
+  /* ===== ACCOUNT TABS ===== */
+  .tab-row { display: flex; gap: var(--space-2); flex-wrap: wrap; margin-bottom: var(--space-5); }
+  .tab-pill {
+    padding: 7px 16px; border: 1px solid var(--border-default); border-radius: var(--radius-full);
+    font-size: var(--text-xs); font-weight: 600; cursor: pointer;
+    background: var(--bg-surface); color: var(--text-secondary); font-family: var(--font);
+    transition: all 0.15s;
+  }
+  .tab-pill:hover { border-color: var(--accent); color: var(--accent); }
+  .tab-pill.active { background: var(--accent); color: var(--text-inverse); border-color: var(--accent); }
+
+  /* ===== MODAL ===== */
+  .modal-overlay {
+    display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); z-index: 600;
+    justify-content: center; align-items: center;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: var(--bg-surface); border-radius: var(--radius-xl); padding: var(--space-8);
+    width: 540px; max-width: 95vw; max-height: 90vh; overflow-y: auto;
+    box-shadow: var(--shadow-lg);
+  }
+  .modal h3 { font-size: var(--text-lg); font-weight: 700; margin-bottom: var(--space-6); }
+  .modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); margin-bottom: var(--space-4); }
+  .modal-grid.full { grid-template-columns: 1fr; }
+  .modal-field label { display: block; font-size: var(--text-xs); font-weight: 600; color: var(--text-tertiary); margin-bottom: var(--space-1); }
+  .modal-field input {
+    width: 100%; padding: 10px 14px; border: 1px solid var(--border-default); border-radius: var(--radius-sm);
+    font-size: var(--text-sm); font-family: var(--font); color: var(--text-primary);
+    transition: border-color 0.15s;
+  }
+  .modal-field input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-subtle); }
+  .modal-actions { display: flex; gap: var(--space-3); margin-top: var(--space-6); }
+
+  /* ===== EMPTY STATE ===== */
+  .empty-state { text-align: center; padding: var(--space-10) var(--space-6); color: var(--text-tertiary); }
+  .empty-state p { font-size: var(--text-sm); }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 768px) {
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .acc-metrics { flex-direction: column; gap: 0; }
+    .metric { border-left: none; border-top: 1px solid var(--border-subtle); min-width: auto; }
+    .metric:first-child { border-top: none; }
+    .modal-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<header class="header">
+  <div class="header-left">
+    <div class="header-logo">
+      <svg viewBox="0 0 24 24"><path d="M3 3h18v18H3V3zm2 2v14h14V5H5zm2 3h4v2H7V8zm0 4h10v2H7v-2zm0 4h7v2H7v-2z"/></svg>
+    </div>
+    <div>
+      <div class="header-title">또율아빠 광고 보고서 자동화</div>
+      <div class="header-subtitle">네이버 검색광고 대시보드</div>
+    </div>
+  </div>
+  <div class="header-right">
+    {% if setup_mode %}
+    <span class="status-badge" style="background:#fffbeb; color:#b45309;">초기 설정 필요</span>
+    {% else %}
+    <span class="status-badge live"><span class="dot"></span>스케줄러 실행 중</span>
+    {% endif %}
+    <span class="header-time" id="header-time"></span>
+  </div>
+</header>
+
+{% if setup_mode %}
+<!-- ===== SETUP BANNER ===== -->
+<div style="background:linear-gradient(135deg,#fef3c7,#fde68a); border-bottom:2px solid #f59e0b; padding:20px 32px; text-align:center;">
+  <div style="font-size:18px; font-weight:700; color:#92400e; margin-bottom:6px;">
+    초기 설정이 필요합니다
+  </div>
+  <div style="font-size:14px; color:#a16207; line-height:1.6;">
+    아래 순서로 설정해주세요: <strong>1) 일반 설정 (이메일)</strong> &rarr; <strong>2) 네이버 계정 추가</strong> &rarr; <strong>3) 서버 재시작</strong><br>
+    쿠팡 광고는 선택사항입니다. 모든 설정은 대시보드에서 할 수 있습니다.
+  </div>
+</div>
+{% endif %}
+
+<!-- ===== PLATFORM TABS ===== -->
+<div class="platform-tabs">
+  <button class="platform-tab active" onclick="switchPlatform('naver', this)">
+    <span class="tab-dot naver"></span> 네이버 검색광고
+  </button>
+  {% if has_gfa %}
+  <button class="platform-tab" onclick="switchPlatform('gfa', this)">
+    <span class="tab-dot gfa"></span> 네이버 GFA
+  </button>
+  {% endif %}
+  {% if has_coupang %}
+  <button class="platform-tab" onclick="switchPlatform('coupang', this)">
+    <span class="tab-dot coupang"></span> 쿠팡 광고
+  </button>
+  {% endif %}
+</div>
+
+<div class="container">
+
+<!-- ===== 통합 보고서 발송 ===== -->
+<div class="section" style="margin-bottom:16px;border:2px solid #e2e5ea;background:linear-gradient(135deg,#f8fafc,#f1f5f9);">
+  <div style="padding:20px 24px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <div>
+        <div style="font-size:18px;font-weight:700;color:#1a1d23;">전체 보고서 발송</div>
+        <div style="font-size:13px;color:#5a6270;margin-top:2px;">플랫폼/업체를 선택하고 한 번에 보고서를 발송합니다 <span style="color:#9ca3af;">(체크 안하면 전체 발송)</span></div>
+      </div>
+      <button class="btn btn-primary" onclick="sendBulkReport()" id="btn-bulk-send" style="background:linear-gradient(135deg,#0f7b3f,#0d6b36);padding:10px 24px;font-size:14px;font-weight:700;border-radius:10px;">
+        선택 발송
+      </button>
+    </div>
+
+    <!-- 플랫폼 + 업체 선택 (동적 생성) -->
+    <div id="bulk-platform-area" style="margin-bottom:14px;"></div>
+
+    <!-- 날짜 선택 -->
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+      <span style="font-size:12px;color:#5a6270;font-weight:600;">기간</span>
+      <input type="date" id="bulk-date-from" style="border:1px solid #d1d5db;border-radius:8px;padding:6px 10px;font-size:13px;">
+      <span style="color:#9ca3af;">~</span>
+      <input type="date" id="bulk-date-to" style="border:1px solid #d1d5db;border-radius:8px;padding:6px 10px;font-size:13px;">
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-ghost btn-sm" onclick="setBulkDateRange('yesterday')" style="font-size:11px;">어제</button>
+        <button class="btn btn-ghost btn-sm" onclick="setBulkDateRange('7d')" style="font-size:11px;">7일</button>
+        <button class="btn btn-ghost btn-sm" onclick="setBulkDateRange('30d')" style="font-size:11px;">30일</button>
+        <button class="btn btn-ghost btn-sm" onclick="setBulkDateRange('this_month')" style="font-size:11px;">이번 달</button>
+      </div>
+    </div>
+
+    <!-- 발송 상태 -->
+    <div id="bulk-send-status" style="margin-top:12px;display:none;"></div>
+  </div>
+</div>
+
+<!-- ===== NAVER PANEL ===== -->
+<div id="panel-naver" class="platform-panel active">
+
+  <!-- ===== KPI CARDS ===== -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-label">보고서 발송</div>
+      <div class="kpi-value">{{ schedule_report_time }}</div>
+      <div class="kpi-meta">매일 자동 발송</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">예산 모니터링</div>
+      <div class="kpi-value">30분</div>
+      <div class="kpi-meta">주기적 체크</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">경고 기준</div>
+      <div class="kpi-value">{{ "{:,.0f}".format(alert_threshold) }}<span style="font-size:var(--text-sm); font-weight:600;">원</span></div>
+      <div class="kpi-meta">일일 광고비 미만 시</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">등록 계정</div>
+      <div class="kpi-value" id="account-count">{{ accounts|length }}</div>
+      <div class="kpi-meta">활성 광고 계정</div>
+    </div>
+  </div>
+
+  <!-- ===== ACCOUNTS SECTION ===== -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title-group">
+        <div class="section-icon green">
+          <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+        </div>
+        <div>
+          <div class="section-title">계정 관리</div>
+          <div class="section-desc">광고 계정을 추가, 수정, 삭제할 수 있습니다</div>
+        </div>
+      </div>
+      <div style="display:flex; gap:var(--space-2);">
+        <button class="btn btn-secondary btn-sm" onclick="loadAccounts()">
+          <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+          새로고침
+        </button>
+        <button class="btn btn-primary btn-sm" onclick="openAddAccountModal()">
+          <svg viewBox="0 0 24 24" fill="white"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+          계정 추가
+        </button>
+      </div>
+    </div>
+    <div class="section-body" style="padding:var(--space-2) var(--space-4);">
+      <div id="account-list"></div>
+    </div>
+  </div>
+
+  <!-- ===== AD COSTS SECTION ===== -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title-group">
+        <div class="section-icon orange">
+          <svg viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
+        </div>
+        <div>
+          <div class="section-title">광고비 현황</div>
+          <div class="section-desc">비즈머니 잔액과 금일 소진 광고비를 한눈에 확인합니다</div>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="checkCosts()" id="btn-check-cost">
+        <svg viewBox="0 0 24 24" fill="white"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>
+        조회
+      </button>
+    </div>
+    <div class="section-body" style="padding:var(--space-2) var(--space-4);">
+      <div id="cost-area">
+        <div class="empty-state"><p>조회 버튼을 눌러 현재 광고비를 확인하세요</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== REPORT SECTION ===== -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title-group">
+        <div class="section-icon blue">
+          <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+        </div>
+        <div>
+          <div class="section-title">보고서 발송</div>
+          <div class="section-desc">기간을 선택하고 메일로 발송합니다</div>
+        </div>
+      </div>
+    </div>
+    <div class="section-body">
+      <!-- Date Range -->
+      <div class="date-row">
+        <div class="form-field">
+          <label>시작일</label>
+          <input type="date" id="date-from">
+        </div>
+        <div class="form-field">
+          <label>종료일</label>
+          <input type="date" id="date-to">
+        </div>
+        <div class="quick-btns">
+          <button class="quick-btn" onclick="setDateRange('yesterday')">어제</button>
+          <button class="quick-btn" onclick="setDateRange('7days')">7일</button>
+          <button class="quick-btn" onclick="setDateRange('30days')">30일</button>
+          <button class="quick-btn" onclick="setDateRange('thismonth')">이번 달</button>
+          <button class="quick-btn" onclick="setDateRange('lastmonth')">지난 달</button>
+        </div>
+      </div>
+
+      <!-- Account Tabs -->
+      <div>
+        <label style="font-size:var(--text-xs); font-weight:600; color:var(--text-tertiary); display:block; margin-bottom:var(--space-2); text-transform:uppercase; letter-spacing:0.03em;">발송 계정</label>
+        <div class="tab-row" id="report-account-tabs"></div>
+      </div>
+
+      <!-- Sort Options -->
+      <div style="margin-top:var(--space-4); padding-top:var(--space-4); border-top:1px solid var(--border-subtle);">
+        <label style="font-size:var(--text-xs); font-weight:600; color:var(--text-tertiary); display:block; margin-bottom:var(--space-3); text-transform:uppercase; letter-spacing:0.03em;">정렬 기준</label>
+        <div style="display:flex; gap:var(--space-6); flex-wrap:wrap;">
+          <div style="display:flex; align-items:center; gap:var(--space-2);">
+            <span style="font-size:var(--text-xs); color:var(--text-secondary); font-weight:600; min-width:56px;">광고그룹</span>
+            <div class="form-field">
+              <select id="adgroup-sort-by">
+                <option value="cost" selected>비용</option>
+                <option value="impressions">노출</option>
+                <option value="clicks">클릭</option>
+                <option value="ctr">CTR</option>
+                <option value="cpc">CPC</option>
+                <option value="conversions">전환</option>
+                <option value="conv_revenue">전환매출</option>
+                <option value="roas">ROAS</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <select id="adgroup-sort-order">
+                <option value="desc" selected>내림차순</option>
+                <option value="asc">오름차순</option>
+              </select>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:var(--space-2);">
+            <span style="font-size:var(--text-xs); color:var(--text-secondary); font-weight:600; min-width:40px;">키워드</span>
+            <div class="form-field">
+              <select id="keyword-sort-by">
+                <option value="cost" selected>비용</option>
+                <option value="impressions">노출</option>
+                <option value="clicks">클릭</option>
+                <option value="ctr">CTR</option>
+                <option value="cpc">CPC</option>
+                <option value="conversions">전환</option>
+                <option value="conv_revenue">전환매출</option>
+                <option value="roas">ROAS</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <select id="keyword-sort-order">
+                <option value="desc" selected>내림차순</option>
+                <option value="asc">오름차순</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Send Button -->
+      <div class="action-bar">
+        <button class="btn btn-primary" onclick="sendSelectedReports()" id="btn-send-reports">
+          <svg viewBox="0 0 24 24" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+          보고서 발송
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== GENERAL SETTINGS SECTION ===== -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title-group">
+        <div class="section-icon green">
+          <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+        </div>
+        <div>
+          <div class="section-title">일반 설정</div>
+          <div class="section-desc">이메일, 스케줄, 알림, 서버 설정을 관리합니다</div>
+        </div>
+      </div>
+    </div>
+    <div class="section-body">
+      <!-- Email Settings -->
+      <div style="margin-bottom:var(--space-6);">
+        <div style="font-size:var(--text-sm); font-weight:700; color:var(--text-primary); margin-bottom:var(--space-3); display:flex; align-items:center; gap:6px;">
+          <svg viewBox="0 0 24 24" style="width:16px; height:16px; fill:var(--accent);"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+          이메일 설정
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:var(--space-4);">
+          <div class="form-field">
+            <label>발송 이메일</label>
+            <input type="email" id="set-sender-email" placeholder="예: user@naver.com">
+          </div>
+          <div class="form-field">
+            <label>앱 비밀번호</label>
+            <div style="position:relative;">
+              <input type="password" id="set-app-password" placeholder="네이버 앱 비밀번호">
+              <button type="button" onclick="togglePassword('set-app-password', this)" style="position:absolute; right:8px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:var(--text-tertiary); font-size:var(--text-xs); padding:4px 6px;">보기</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Schedule Settings -->
+      <div style="margin-bottom:var(--space-6);">
+        <div style="font-size:var(--text-sm); font-weight:700; color:var(--text-primary); margin-bottom:var(--space-3); display:flex; align-items:center; gap:6px;">
+          <svg viewBox="0 0 24 24" style="width:16px; height:16px; fill:var(--status-info);"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+          스케줄 설정
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:var(--space-4);">
+          <div class="form-field">
+            <label>보고서 발송 시간</label>
+            <input type="time" id="set-report-time" value="09:00">
+          </div>
+          <div class="form-field">
+            <label>광고비 체크 시간</label>
+            <input type="time" id="set-alert-time" value="23:00">
+          </div>
+        </div>
+      </div>
+
+      <!-- Alert Settings -->
+      <div style="margin-bottom:var(--space-6);">
+        <div style="font-size:var(--text-sm); font-weight:700; color:var(--text-primary); margin-bottom:var(--space-3); display:flex; align-items:center; gap:6px;">
+          <svg viewBox="0 0 24 24" style="width:16px; height:16px; fill:var(--status-warn);"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
+          알림 설정
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:var(--space-4); align-items:end;">
+          <div class="form-field">
+            <label>일일 광고비 경고 기준 (원)</label>
+            <input type="number" id="set-alert-threshold" placeholder="50000" step="1000">
+          </div>
+          <div style="display:flex; align-items:center; gap:var(--space-2); padding-bottom:var(--space-2);">
+            <label style="font-size:var(--text-sm); color:var(--text-secondary); display:flex; align-items:center; gap:var(--space-2); cursor:pointer;">
+              <input type="checkbox" id="set-alert-enabled" style="width:16px; height:16px; accent-color:var(--accent);">
+              알림 활성화
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Server URL -->
+      <div style="margin-bottom:var(--space-4);">
+        <div style="font-size:var(--text-sm); font-weight:700; color:var(--text-primary); margin-bottom:var(--space-3); display:flex; align-items:center; gap:6px;">
+          <svg viewBox="0 0 24 24" style="width:16px; height:16px; fill:var(--text-tertiary);"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+          서버 URL (캠페인 제어 링크용)
+        </div>
+        <div class="form-field">
+          <input type="text" id="set-server-url" placeholder="예: http://172.30.1.48:5000">
+        </div>
+      </div>
+
+      <!-- Save Button -->
+      <div class="action-bar" style="margin-top:var(--space-5);">
+        <button class="btn btn-primary" onclick="saveGeneralSettings()" id="btn-save-settings">
+          <svg viewBox="0 0 24 24" fill="white" style="width:15px; height:15px;"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>
+          설정 저장
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /panel-naver -->
+
+<!-- ===== GFA PANEL ===== -->
+{% if has_gfa %}
+<div id="panel-gfa" class="platform-panel">
+
+  <!-- GFA KPI Cards -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-label">플랫폼</div>
+      <div class="kpi-value" style="font-size:var(--text-lg); color:#1a73e8;">네이버 GFA</div>
+      <div class="kpi-meta">성과형 디스플레이 광고</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">등록 계정</div>
+      <div class="kpi-value" id="gfa-account-count" style="color:#1a73e8;">{{ gfa_count }}</div>
+      <div class="kpi-meta">GFA 광고 계정</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">인증 방식</div>
+      <div class="kpi-value" style="font-size:var(--text-lg);">네이버 로그인</div>
+      <div class="kpi-meta">Selenium 스크래핑</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">보고서 발송</div>
+      <div class="kpi-value">{{ schedule_report_time }}</div>
+      <div class="kpi-meta">매일 자동 발송</div>
+    </div>
+  </div>
+
+  <!-- GFA Account Management Section -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title-group">
+        <div class="section-icon" style="background:#eff6ff; color:#1a73e8;">
+          <svg viewBox="0 0 24 24" style="fill:#1a73e8;"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+        </div>
+        <div>
+          <div class="section-title">GFA 계정 관리</div>
+          <div class="section-desc">네이버 GFA API 계정을 추가, 수정, 삭제할 수 있습니다</div>
+        </div>
+      </div>
+      <div style="display:flex; gap:var(--space-2);">
+        <button class="btn btn-secondary btn-sm" onclick="loadGfaAccounts()">
+          <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+          새로고침
+        </button>
+        <button class="btn btn-primary btn-sm" onclick="openAddGfaModal()" style="background:#1a73e8;">
+          <svg viewBox="0 0 24 24" fill="white"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+          계정 추가
+        </button>
+      </div>
+    </div>
+    <div class="section-body" style="padding:var(--space-2) var(--space-4);">
+      <div id="gfa-account-list"></div>
+    </div>
+  </div>
+
+  <!-- GFA Report Section -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title-group">
+        <div class="section-icon" style="background:#eff6ff; color:#1a73e8;">
+          <svg viewBox="0 0 24 24" style="fill:#1a73e8;"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+        </div>
+        <div>
+          <div class="section-title">GFA 보고서 발송</div>
+          <div class="section-desc">기간을 선택하고 네이버 GFA 보고서를 메일로 발송합니다</div>
+        </div>
+      </div>
+    </div>
+    <div class="section-body">
+      <!-- Date Range -->
+      <div class="date-row">
+        <div class="form-field">
+          <label>시작일</label>
+          <input type="date" id="gfa-date-from">
+        </div>
+        <div class="form-field">
+          <label>종료일</label>
+          <input type="date" id="gfa-date-to">
+        </div>
+        <div class="quick-btns">
+          <button class="quick-btn" onclick="setGfaDateRange('yesterday')">어제</button>
+          <button class="quick-btn" onclick="setGfaDateRange('7days')">7일</button>
+          <button class="quick-btn" onclick="setGfaDateRange('30days')">30일</button>
+          <button class="quick-btn" onclick="setGfaDateRange('thismonth')">이번 달</button>
+          <button class="quick-btn" onclick="setGfaDateRange('lastmonth')">지난 달</button>
+        </div>
+      </div>
+
+      <!-- Account Tabs -->
+      <div>
+        <label style="font-size:var(--text-xs); font-weight:600; color:var(--text-tertiary); display:block; margin-bottom:var(--space-2); text-transform:uppercase; letter-spacing:0.03em;">발송 계정</label>
+        <div class="tab-row" id="gfa-report-tabs"></div>
+      </div>
+
+      <!-- Send Button -->
+      <div class="action-bar">
+        <button class="btn btn-primary" onclick="sendGfaReport()" id="btn-send-gfa" style="background:#1a73e8;">
+          <svg viewBox="0 0 24 24" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+          GFA 보고서 발송
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /panel-gfa -->
+{% endif %}
+
+<!-- ===== COUPANG PANEL ===== -->
+{% if has_coupang %}
+<div id="panel-coupang" class="platform-panel">
+
+  <!-- Coupang KPI Cards -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-label">플랫폼</div>
+      <div class="kpi-value" style="font-size:var(--text-lg); color:#e4002b;">쿠팡 광고</div>
+      <div class="kpi-meta">Wing 로그인 방식</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">등록 계정</div>
+      <div class="kpi-value" id="cpg-account-count" style="color:#e4002b;">{{ coupang_count }}</div>
+      <div class="kpi-meta">쿠팡 광고 계정</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">보고서 발송</div>
+      <div class="kpi-value">{{ schedule_report_time }}</div>
+      <div class="kpi-meta">매일 자동 발송</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">데이터 수집</div>
+      <div class="kpi-value" style="font-size:var(--text-lg);">DOM 스크래핑</div>
+      <div class="kpi-meta">Selenium 브라우저</div>
+    </div>
+  </div>
+
+  <!-- Coupang Account Management Section -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title-group">
+        <div class="section-icon" style="background:#fef2f2; color:#e4002b;">
+          <svg viewBox="0 0 24 24" style="fill:#e4002b;"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+        </div>
+        <div>
+          <div class="section-title">쿠팡 계정 관리</div>
+          <div class="section-desc">쿠팡 Wing 계정을 추가, 수정, 삭제할 수 있습니다</div>
+        </div>
+      </div>
+      <div style="display:flex; gap:var(--space-2);">
+        <button class="btn btn-secondary btn-sm" onclick="loadCoupangAccounts()">
+          <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+          새로고침
+        </button>
+        <button class="btn btn-primary btn-sm" onclick="openAddCpgModal()" style="background:#e4002b;">
+          <svg viewBox="0 0 24 24" fill="white"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+          계정 추가
+        </button>
+      </div>
+    </div>
+    <div class="section-body" style="padding:var(--space-2) var(--space-4);">
+      <div id="cpg-account-list"></div>
+    </div>
+  </div>
+
+  <!-- Coupang Campaign Management Section -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title-group">
+        <div class="section-icon" style="background:#fef2f2; color:#e4002b;">
+          <svg viewBox="0 0 24 24" style="fill:#e4002b;"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
+        </div>
+        <div>
+          <div class="section-title">캠페인 관리</div>
+          <div class="section-desc">캠페인을 ON/OFF 할 수 있습니다</div>
+        </div>
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="loadCoupangCampaigns(true)" id="btn-load-cpg-campaigns">
+        <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+        실시간 조회
+      </button>
+    </div>
+    <div class="section-body" style="padding:var(--space-2) var(--space-4);">
+      <div id="cpg-campaign-list">
+        <div class="empty-state"><p>캠페인 조회 버튼을 눌러 캠페인 목록을 불러오세요.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Coupang Report Section -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title-group">
+        <div class="section-icon" style="background:#fef2f2; color:#e4002b;">
+          <svg viewBox="0 0 24 24" style="fill:#e4002b;"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+        </div>
+        <div>
+          <div class="section-title">쿠팡 보고서 발송</div>
+          <div class="section-desc">기간을 선택하고 쿠팡 광고 보고서를 메일로 발송합니다</div>
+        </div>
+      </div>
+    </div>
+    <div class="section-body">
+      <!-- Date Range -->
+      <div class="date-row">
+        <div class="form-field">
+          <label>시작일</label>
+          <input type="date" id="cpg-date-from">
+        </div>
+        <div class="form-field">
+          <label>종료일</label>
+          <input type="date" id="cpg-date-to">
+        </div>
+        <div class="quick-btns">
+          <button class="quick-btn" onclick="setCpgDateRange('yesterday')">어제</button>
+          <button class="quick-btn" onclick="setCpgDateRange('7days')">7일</button>
+          <button class="quick-btn" onclick="setCpgDateRange('30days')">30일</button>
+          <button class="quick-btn" onclick="setCpgDateRange('thismonth')">이번 달</button>
+          <button class="quick-btn" onclick="setCpgDateRange('lastmonth')">지난 달</button>
+        </div>
+      </div>
+
+      <!-- Account Tabs -->
+      <div>
+        <label style="font-size:var(--text-xs); font-weight:600; color:var(--text-tertiary); display:block; margin-bottom:var(--space-2); text-transform:uppercase; letter-spacing:0.03em;">발송 계정</label>
+        <div class="tab-row" id="cpg-report-tabs"></div>
+      </div>
+
+      <!-- Send Button -->
+      <div class="action-bar">
+        <button class="btn btn-primary" onclick="sendCoupangReport()" id="btn-send-coupang" style="background:#e4002b;">
+          <svg viewBox="0 0 24 24" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+          쿠팡 보고서 발송
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /panel-coupang -->
+{% endif %}
+
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Loading -->
+<div class="loading-overlay" id="loading">
+  <div class="loading-box">
+    <div class="spinner dark"></div>
+    <p id="loading-text">처리 중...</p>
+  </div>
+</div>
+
+<!-- Edit Account Modal -->
+<div class="modal-overlay" id="edit-account-modal">
+  <div class="modal">
+    <h3>계정 수정</h3>
+    <input type="hidden" id="edit-acc-index">
+    <div class="modal-grid">
+      <div class="modal-field"><label>계정 이름</label><input type="text" id="edit-acc-name"></div>
+      <div class="modal-field"><label>고객 ID</label><input type="text" id="edit-acc-customer-id"></div>
+    </div>
+    <div class="modal-grid full">
+      <div class="modal-field"><label>API Key</label><input type="text" id="edit-acc-api-key"></div>
+    </div>
+    <div class="modal-grid full">
+      <div class="modal-field"><label>Secret Key</label><input type="text" id="edit-acc-secret-key"></div>
+    </div>
+    <div class="modal-grid full">
+      <div class="modal-field"><label>수신 이메일 (콤마로 구분)</label><input type="text" id="edit-acc-recipients"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="saveEditAccount()">저장</button>
+      <button class="btn btn-ghost" onclick="closeEditAccountModal()">취소</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Account Modal -->
+<div class="modal-overlay" id="add-account-modal">
+  <div class="modal">
+    <h3>계정 추가</h3>
+    <div class="modal-grid">
+      <div class="modal-field"><label>계정 이름</label><input type="text" id="acc-name" placeholder="예: 메인 광고 계정"></div>
+      <div class="modal-field"><label>고객 ID</label><input type="text" id="acc-customer-id" placeholder="예: 3143084"></div>
+    </div>
+    <div class="modal-grid full">
+      <div class="modal-field"><label>API Key</label><input type="text" id="acc-api-key" placeholder="네이버 광고 API Key"></div>
+    </div>
+    <div class="modal-grid full">
+      <div class="modal-field"><label>Secret Key</label><input type="text" id="acc-secret-key" placeholder="네이버 광고 Secret Key"></div>
+    </div>
+    <div class="modal-grid full">
+      <div class="modal-field"><label>수신 이메일 (콤마로 구분, 비워두면 발송 이메일로 설정)</label><input type="text" id="acc-recipients" placeholder="예: user1@naver.com, user2@naver.com"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="addAccount()">추가</button>
+      <button class="btn btn-ghost" onclick="closeAddAccountModal()">취소</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Coupang Account Modal -->
+<div class="modal-overlay" id="add-cpg-modal">
+  <div class="modal">
+    <h3>쿠팡 계정 추가</h3>
+    <div class="modal-grid">
+      <div class="modal-field"><label>계정 이름</label><input type="text" id="cpg-add-name" placeholder="예: 쿠팡 광고"></div>
+      <div class="modal-field"><label>Wing ID</label><input type="text" id="cpg-add-wing-id" placeholder="쿠팡 Wing 아이디"></div>
+    </div>
+    <div class="modal-grid full">
+      <div class="modal-field"><label>Wing 비밀번호</label><input type="password" id="cpg-add-wing-pw" placeholder="쿠팡 Wing 비밀번호"></div>
+    </div>
+    <div class="modal-grid full">
+      <div class="modal-field"><label>수신 이메일 (콤마로 구분)</label><input type="text" id="cpg-add-recipients" placeholder="예: user@naver.com"></div>
+    </div>
+    <div style="margin-top:var(--space-3);">
+      <label style="font-size:var(--text-sm); color:var(--text-secondary); display:flex; align-items:center; gap:var(--space-2); cursor:pointer;">
+        <input type="checkbox" id="cpg-add-headless" checked style="width:16px; height:16px; accent-color:#e4002b;">
+        브라우저 숨김 모드 (Headless)
+      </label>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="addCpgAccount()" style="background:#e4002b;">추가</button>
+      <button class="btn btn-ghost" onclick="closeCpgModal('add-cpg-modal')">취소</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Coupang Account Modal -->
+<div class="modal-overlay" id="edit-cpg-modal">
+  <div class="modal">
+    <h3>쿠팡 계정 수정</h3>
+    <input type="hidden" id="cpg-edit-index">
+    <div class="modal-grid">
+      <div class="modal-field"><label>계정 이름</label><input type="text" id="cpg-edit-name"></div>
+      <div class="modal-field"><label>Wing ID</label><input type="text" id="cpg-edit-wing-id"></div>
+    </div>
+    <div class="modal-grid full">
+      <div class="modal-field"><label>Wing 비밀번호</label><input type="password" id="cpg-edit-wing-pw"></div>
+    </div>
+    <div class="modal-grid full">
+      <div class="modal-field"><label>수신 이메일 (콤마로 구분)</label><input type="text" id="cpg-edit-recipients"></div>
+    </div>
+    <div style="margin-top:var(--space-3);">
+      <label style="font-size:var(--text-sm); color:var(--text-secondary); display:flex; align-items:center; gap:var(--space-2); cursor:pointer;">
+        <input type="checkbox" id="cpg-edit-headless" style="width:16px; height:16px; accent-color:#e4002b;">
+        브라우저 숨김 모드 (Headless)
+      </label>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="saveCpgAccount()" style="background:#e4002b;">저장</button>
+      <button class="btn btn-ghost" onclick="closeCpgModal('edit-cpg-modal')">취소</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add GFA Account Modal -->
+<div class="modal-overlay" id="add-gfa-modal">
+  <div class="modal">
+    <h3>GFA 계정 추가</h3>
+    <div class="modal-grid">
+      <div class="modal-field"><label>계정 이름</label><input type="text" id="gfa-add-name" placeholder="예: 네이버 GFA"></div>
+      <div class="modal-field"><label>네이버 ID</label><input type="text" id="gfa-add-naver-id" placeholder="네이버 로그인 ID"></div>
+    </div>
+    <div class="modal-grid full">
+      <div class="modal-field"><label>네이버 비밀번호</label><input type="password" id="gfa-add-naver-pw" placeholder="네이버 로그인 비밀번호"></div>
+    </div>
+    <div class="modal-grid full">
+      <div class="modal-field"><label>광고 계정 고유번호</label><input type="text" id="gfa-add-ad-account-id" placeholder="광고주센터 계정 고유번호 (예: 1749323)"></div>
+    </div>
+    <div class="modal-grid full">
+      <div class="modal-field"><label>수신 이메일 (콤마로 구분)</label><input type="text" id="gfa-add-recipients" placeholder="예: user@naver.com"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="addGfaAccount()" style="background:#1a73e8;">추가</button>
+      <button class="btn btn-ghost" onclick="closeGfaModal('add-gfa-modal')">취소</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit GFA Account Modal -->
+<div class="modal-overlay" id="edit-gfa-modal">
+  <div class="modal">
+    <h3>GFA 계정 수정</h3>
+    <input type="hidden" id="gfa-edit-index">
+    <div class="modal-grid">
+      <div class="modal-field"><label>계정 이름</label><input type="text" id="gfa-edit-name"></div>
+      <div class="modal-field"><label>네이버 ID</label><input type="text" id="gfa-edit-naver-id"></div>
+    </div>
+    <div class="modal-grid full">
+      <div class="modal-field"><label>네이버 비밀번호</label><input type="password" id="gfa-edit-naver-pw" placeholder="변경 시에만 입력"></div>
+    </div>
+    <div class="modal-grid full">
+      <div class="modal-field"><label>광고 계정 고유번호</label><input type="text" id="gfa-edit-ad-account-id" placeholder="광고주센터 계정 고유번호"></div>
+    </div>
+    <div class="modal-grid full">
+      <div class="modal-field"><label>수신 이메일 (콤마로 구분)</label><input type="text" id="gfa-edit-recipients"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="saveGfaAccount()" style="background:#1a73e8;">저장</button>
+      <button class="btn btn-ghost" onclick="closeGfaModal('edit-gfa-modal')">취소</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== Globals =====
+let accountList = [];
+let selectedReportAccount = 'all';
+
+// ===== 통합 보고서 발송 =====
+function setBulkDateRange(preset) {
+  const today = new Date();
+  let from, to;
+  if (preset === 'yesterday') {
+    from = to = new Date(today.getTime() - 86400000);
+  } else if (preset === '7d') {
+    to = new Date(today.getTime() - 86400000);
+    from = new Date(to.getTime() - 6 * 86400000);
+  } else if (preset === '30d') {
+    to = new Date(today.getTime() - 86400000);
+    from = new Date(to.getTime() - 29 * 86400000);
+  } else if (preset === 'this_month') {
+    from = new Date(today.getFullYear(), today.getMonth(), 1);
+    to = new Date(today.getTime() - 86400000);
+  }
+  if (from) document.getElementById('bulk-date-from').value = from.toISOString().split('T')[0];
+  if (to) document.getElementById('bulk-date-to').value = to.toISOString().split('T')[0];
+}
+setBulkDateRange('yesterday');
+
+// 업체별 동적 체크박스 생성
+async function renderBulkPlatforms() {
+  const area = document.getElementById('bulk-platform-area');
+  if (!area) return;
+
+  // 각 플랫폼의 계정 목록 로드
+  const platforms = [];
+  try {
+    const [naverResp, gfaResp, cpgResp] = await Promise.all([
+      fetch('/api/accounts').then(r => r.json()).catch(() => ({accounts:[]})),
+      fetch('/api/gfa-accounts').then(r => r.json()).catch(() => ({accounts:[]})),
+      fetch('/api/coupang-accounts').then(r => r.json()).catch(() => ({accounts:[]})),
+    ]);
+
+    (naverResp.accounts || []).forEach(a => {
+      platforms.push({type:'naver', name:a.name, index:a.index, color:'#0f7b3f', border:'#d1eade', url:'/api/send-report', label:'네이버'});
+    });
+    (gfaResp.accounts || []).forEach(a => {
+      platforms.push({type:'gfa', name:a.name, index:a.index, color:'#1a73e8', border:'#bfdbfe', url:'/api/send-gfa-report', label:'GFA'});
+    });
+    (cpgResp.accounts || []).forEach(a => {
+      platforms.push({type:'cpg', name:a.name, index:a.index, color:'#e4002b', border:'#fecaca', url:'/api/send-coupang-report', label:'쿠팡'});
+    });
+  } catch(e) {}
+
+  if (!platforms.length) {
+    area.innerHTML = '<div style="color:#9ca3af;font-size:13px;">등록된 계정이 없습니다</div>';
+    return;
+  }
+
+  // 전체 저장
+  window._bulkPlatforms = platforms;
+
+  let html = '<div style="display:flex;gap:8px;flex-wrap:wrap;">';
+  platforms.forEach((p, i) => {
+    const typeIcon = p.type === 'naver' ? '🟢' : p.type === 'gfa' ? '🔵' : '🔴';
+    html += `<label style="display:flex;align-items:center;gap:6px;background:white;border:2px solid ${p.border};border-radius:10px;padding:8px 14px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">
+      <input type="checkbox" class="bulk-account-cb" data-index="${i}" style="width:16px;height:16px;accent-color:${p.color};">
+      <span style="font-size:12px;font-weight:600;color:${p.color};">${p.name}</span>
+      <span style="font-size:10px;color:#9ca3af;background:#f3f4f6;padding:1px 6px;border-radius:8px;">${p.label}</span>
+    </label>`;
+  });
+  html += '</div>';
+  html += '<div style="font-size:11px;color:#9ca3af;margin-top:6px;">* 체크 안하면 전체 업체에 발송됩니다</div>';
+  area.innerHTML = html;
+}
+renderBulkPlatforms();
+
+async function sendBulkReport() {
+  const dateFrom = document.getElementById('bulk-date-from').value;
+  const dateTo = document.getElementById('bulk-date-to').value;
+  if (!dateFrom || !dateTo) { showToast('날짜를 선택하세요', 'error'); return; }
+
+  const allPlatforms = window._bulkPlatforms || [];
+  if (!allPlatforms.length) { showToast('등록된 계정이 없습니다', 'error'); return; }
+
+  // 체크된 계정 수집 (체크 안하면 전체)
+  const checkboxes = document.querySelectorAll('.bulk-account-cb');
+  const checkedIndexes = [];
+  checkboxes.forEach(cb => { if (cb.checked) checkedIndexes.push(parseInt(cb.dataset.index)); });
+
+  const tasks = checkedIndexes.length > 0
+    ? checkedIndexes.map(i => allPlatforms[i])
+    : allPlatforms;  // 아무것도 체크 안하면 전체
+
+  const btn = document.getElementById('btn-bulk-send');
+  const statusDiv = document.getElementById('bulk-send-status');
+  btn.disabled = true;
+  btn.textContent = '발송 중...';
+  statusDiv.style.display = 'block';
+
+  // 상태 표시 초기화
+  let statusHtml = '';
+  tasks.forEach((t, i) => {
+    const typeLabel = t.type === 'naver' ? '검색광고' : t.type === 'gfa' ? 'GFA' : '쿠팡';
+    statusHtml += `<div id="bulk-st-${i}" style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:13px;">
+      <span style="background:${t.color};width:8px;height:8px;border-radius:50%;display:inline-block;"></span>
+      <span style="font-weight:600;">${t.name}</span>
+      <span style="font-size:11px;color:#9ca3af;">(${typeLabel})</span>
+      <span style="color:#9ca3af;">발송 중...</span>
+    </div>`;
+  });
+  statusDiv.innerHTML = statusHtml;
+
+  // 순차 실행
+  let successCount = 0;
+  for (let i = 0; i < tasks.length; i++) {
+    const task = tasks[i];
+    const statusEl = document.getElementById(`bulk-st-${i}`);
+    const typeLabel = task.type === 'naver' ? '검색광고' : task.type === 'gfa' ? 'GFA' : '쿠팡';
+    try {
+      const body = { date_from: dateFrom, date_to: dateTo, account_index: task.index };
+      const resp = await fetch(task.url, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(body),
+      });
+      const result = await resp.json();
+      if (result.success) {
+        statusEl.innerHTML = `<span style="background:${task.color};width:8px;height:8px;border-radius:50%;display:inline-block;"></span>
+          <span style="font-weight:600;">${task.name}</span>
+          <span style="font-size:11px;color:#9ca3af;">(${typeLabel})</span>
+          <span style="color:#16a34a;font-weight:600;">✓ 완료</span>`;
+        successCount++;
+      } else {
+        statusEl.innerHTML = `<span style="background:${task.color};width:8px;height:8px;border-radius:50%;display:inline-block;"></span>
+          <span style="font-weight:600;">${task.name}</span>
+          <span style="font-size:11px;color:#9ca3af;">(${typeLabel})</span>
+          <span style="color:#dc2626;">✗ ${result.message || '실패'}</span>`;
+      }
+    } catch(e) {
+      statusEl.innerHTML = `<span style="background:${task.color};width:8px;height:8px;border-radius:50%;display:inline-block;"></span>
+        <span style="font-weight:600;">${task.name}</span>
+        <span style="color:#dc2626;">✗ 오류</span>`;
+    }
+  }
+
+  btn.disabled = false;
+  btn.textContent = '선택 발송';
+  showToast(`${successCount}/${tasks.length}개 발송 완료`, successCount === tasks.length ? 'success' : 'error');
+}
+
+// Header time
+function updateHeaderTime() {
+  const now = new Date();
+  const str = now.toLocaleString('ko-KR', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  document.getElementById('header-time').textContent = str + ' 기준';
+}
+updateHeaderTime();
+setInterval(updateHeaderTime, 60000);
+
+// ===== Toast =====
+function showToast(message, type) {
+  const t = document.getElementById('toast');
+  t.textContent = message;
+  t.className = 'toast show ' + type;
+  setTimeout(() => t.className = 'toast', 4000);
+}
+
+function showLoading(text) {
+  document.getElementById('loading-text').textContent = text || '처리 중...';
+  document.getElementById('loading').classList.add('show');
+}
+function hideLoading() {
+  document.getElementById('loading').classList.remove('show');
+}
+
+// ===== Account Management =====
+async function loadAccounts() {
+  try {
+    const resp = await fetch('/api/accounts');
+    const data = await resp.json();
+    if (data.success) {
+      accountList = data.accounts;
+      renderAccountList();
+      renderReportTabs();
+      document.getElementById('account-count').textContent = accountList.length;
+    }
+  } catch (e) { console.error('계정 로드 실패:', e); }
+}
+
+function renderAccountList() {
+  const area = document.getElementById('account-list');
+  if (!accountList.length) {
+    area.innerHTML = '<div class="empty-state"><p>등록된 계정이 없습니다. 계정을 추가해 주세요.</p></div>';
+    return;
+  }
+  let html = '';
+  accountList.forEach(a => {
+    const emails = a.report_recipients || [];
+    let emailTags = '';
+    emails.forEach(em => {
+      emailTags += `<span style="display:inline-flex;align-items:center;gap:4px;background:#eff6ff;color:#1e40af;padding:3px 10px;border-radius:16px;font-size:11px;font-weight:500;margin:2px;">
+        ${em}
+        <span onclick="removeNaverEmail(${a.index},'${em}')" style="cursor:pointer;color:#93c5fd;font-weight:700;font-size:13px;line-height:1;">&times;</span>
+      </span>`;
+    });
+    if (!emails.length) {
+      emailTags = '<span style="color:#9ca3af;font-size:12px;">수신 이메일 없음</span>';
+    }
+    html += `
+      <div class="acc-row" style="flex-direction:column;align-items:stretch;gap:8px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div class="acc-info">
+            <div class="acc-name">${a.name}</div>
+            <div class="acc-id">ID ${a.customer_id} &middot; ${a.api_key}</div>
+          </div>
+          <div class="acc-actions">
+            <button class="btn btn-secondary btn-sm" onclick="openEditAccountModal(${a.index})">수정</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteAccount(${a.index}, '${a.name.replace(/'/g, "\\'")}')">삭제</button>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:6px 0 2px;border-top:1px solid #f3f4f6;">
+          <span style="font-size:11px;color:#6b7280;font-weight:600;min-width:60px;">수신 이메일</span>
+          ${emailTags}
+          <button onclick="showNaverEmailInput(${a.index}, this)" style="display:inline-flex;align-items:center;gap:2px;background:#f0fdf4;color:#16a34a;border:1px dashed #86efac;padding:3px 10px;border-radius:16px;font-size:11px;font-weight:600;cursor:pointer;">+ 추가</button>
+        </div>
+      </div>`;
+  });
+  area.innerHTML = html;
+}
+
+function showNaverEmailInput(index, btn) {
+  if (btn.parentElement.querySelector('.email-inline-wrap')) return;
+  btn.style.display = 'none';
+  const wrap = document.createElement('span');
+  wrap.className = 'email-inline-wrap';
+  wrap.style.cssText = 'display:inline-flex;align-items:center;gap:4px;margin:2px;';
+  wrap.innerHTML = `<input type="email" placeholder="이메일 입력" style="border:1px solid #86efac;border-radius:12px;padding:4px 10px;font-size:12px;width:180px;outline:none;">
+    <button onclick="submitNaverEmail(${index})" style="background:#16a34a;color:#fff;border:none;border-radius:12px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;">확인</button>
+    <button onclick="this.parentElement.previousElementSibling.style.display='';this.parentElement.remove()" style="background:#e5e7eb;color:#374151;border:none;border-radius:12px;padding:4px 8px;font-size:11px;cursor:pointer;">취소</button>`;
+  btn.parentElement.insertBefore(wrap, btn.nextSibling);
+  const input = wrap.querySelector('input');
+  input.focus();
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') submitNaverEmail(index);
+    if (e.key === 'Escape') { wrap.previousElementSibling.style.display = ''; wrap.remove(); }
+  });
+}
+
+async function submitNaverEmail(index) {
+  const wrap = document.querySelector('#account-list .email-inline-wrap');
+  const input = wrap ? wrap.querySelector('input') : null;
+  const email = input ? input.value.trim() : '';
+  if (!email || !email.includes('@')) {
+    showToast('올바른 이메일 주소를 입력하세요', 'error');
+    return;
+  }
+  const acc = accountList.find(a => a.index === index);
+  if (!acc) return;
+  const recipients = [...(acc.report_recipients || [])];
+  if (recipients.includes(email)) {
+    showToast('이미 등록된 이메일입니다', 'error');
+    return;
+  }
+  recipients.push(email);
+  try {
+    const resp = await fetch(`/api/accounts/${index}`, {
+      method: 'PUT', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ report_recipients: recipients }),
+    });
+    const result = await resp.json();
+    if (result.success) {
+      showToast(`${email} 추가 완료`, 'success');
+      await loadAccounts();
+    } else {
+      showToast(result.message || '실패', 'error');
+    }
+  } catch(e) { showToast('이메일 추가 실패', 'error'); }
+}
+
+async function removeNaverEmail(index, email) {
+  if (!confirm(`${email} 이메일을 삭제하시겠습니까?`)) return;
+  const acc = accountList.find(a => a.index === index);
+  if (!acc) return;
+  const recipients = (acc.report_recipients || []).filter(e => e !== email);
+  try {
+    const resp = await fetch(`/api/accounts/${index}`, {
+      method: 'PUT', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ report_recipients: recipients }),
+    });
+    const result = await resp.json();
+    if (result.success) {
+      showToast(`${email} 삭제 완료`, 'success');
+      await loadAccounts();
+    } else {
+      showToast(result.message || '실패', 'error');
+    }
+  } catch(e) { showToast('이메일 삭제 실패', 'error'); }
+}
+
+function renderReportTabs() {
+  const tabs = document.getElementById('report-account-tabs');
+  let html = `<button class="tab-pill active" onclick="selectReportTab(this, 'all')">전체</button>`;
+  accountList.forEach(a => {
+    html += `<button class="tab-pill" onclick="selectReportTab(this, ${a.index})">${a.name}</button>`;
+  });
+  tabs.innerHTML = html;
+}
+
+function selectReportTab(el, value) {
+  document.querySelectorAll('#report-account-tabs .tab-pill').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  selectedReportAccount = value;
+}
+
+function openAddAccountModal() {
+  document.getElementById('add-account-modal').classList.add('show');
+  ['acc-name','acc-customer-id','acc-api-key','acc-secret-key','acc-recipients'].forEach(id => document.getElementById(id).value = '');
+}
+function closeAddAccountModal() { document.getElementById('add-account-modal').classList.remove('show'); }
+
+async function addAccount() {
+  const name = document.getElementById('acc-name').value.trim();
+  const customerId = document.getElementById('acc-customer-id').value.trim();
+  const apiKey = document.getElementById('acc-api-key').value.trim();
+  const secretKey = document.getElementById('acc-secret-key').value.trim();
+  const recipientsStr = document.getElementById('acc-recipients').value.trim();
+  if (!name || !customerId || !apiKey || !secretKey) { showToast('모든 필수 항목을 입력하세요', 'error'); return; }
+  const recipients = recipientsStr ? recipientsStr.split(',').map(s => s.trim()).filter(Boolean) : [];
+  try {
+    showLoading('계정 추가 중...');
+    const resp = await fetch('/api/accounts', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, customer_id: customerId, api_key: apiKey, secret_key: secretKey, report_recipients: recipients.length ? recipients : undefined }),
+    });
+    const data = await resp.json();
+    showToast(data.message, data.success ? 'success' : 'error');
+    if (data.success) { closeAddAccountModal(); await loadAccounts(); }
+  } catch (e) { showToast('서버 연결 실패', 'error'); }
+  finally { hideLoading(); }
+}
+
+async function openEditAccountModal(index) {
+  try {
+    const resp = await fetch('/api/accounts?full=1');
+    const data = await resp.json();
+    if (!data.success) return;
+    const acc = data.accounts.find(a => a.index === index);
+    if (!acc) return;
+    document.getElementById('edit-acc-index').value = index;
+    document.getElementById('edit-acc-name').value = acc.name;
+    document.getElementById('edit-acc-customer-id').value = acc.customer_id;
+    document.getElementById('edit-acc-api-key').value = acc.api_key;
+    document.getElementById('edit-acc-secret-key').value = acc.secret_key;
+    document.getElementById('edit-acc-recipients').value = (acc.report_recipients || []).join(', ');
+    document.getElementById('edit-account-modal').classList.add('show');
+  } catch (e) { showToast('계정 정보 로드 실패', 'error'); }
+}
+function closeEditAccountModal() { document.getElementById('edit-account-modal').classList.remove('show'); }
+
+async function saveEditAccount() {
+  const index = document.getElementById('edit-acc-index').value;
+  const name = document.getElementById('edit-acc-name').value.trim();
+  const customerId = document.getElementById('edit-acc-customer-id').value.trim();
+  const apiKey = document.getElementById('edit-acc-api-key').value.trim();
+  const secretKey = document.getElementById('edit-acc-secret-key').value.trim();
+  const recipientsStr = document.getElementById('edit-acc-recipients').value.trim();
+  const recipients = recipientsStr ? recipientsStr.split(',').map(s => s.trim()).filter(Boolean) : [];
+  if (!name) { showToast('계정 이름을 입력하세요', 'error'); return; }
+  try {
+    showLoading('계정 수정 중...');
+    const resp = await fetch(`/api/accounts/${index}`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, customer_id: customerId, api_key: apiKey, secret_key: secretKey, report_recipients: recipients }),
+    });
+    const data = await resp.json();
+    showToast(data.message, data.success ? 'success' : 'error');
+    if (data.success) { closeEditAccountModal(); await loadAccounts(); }
+  } catch (e) { showToast('서버 연결 실패', 'error'); }
+  finally { hideLoading(); }
+}
+
+async function deleteAccount(index, name) {
+  if (!confirm(`[${name}] 계정을 삭제하시겠습니까?`)) return;
+  try {
+    const resp = await fetch(`/api/accounts/${index}`, { method: 'DELETE' });
+    const data = await resp.json();
+    showToast(data.message, data.success ? 'success' : 'error');
+    if (data.success) await loadAccounts();
+  } catch (e) { showToast('서버 연결 실패', 'error'); }
+}
+
+// ===== Costs =====
+async function checkCosts() {
+  const btn = document.getElementById('btn-check-cost');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> 조회 중';
+  try {
+    const resp = await fetch('/api/costs');
+    const data = await resp.json();
+    if (data.success) {
+      let html = '';
+      data.costs.forEach(c => {
+        const statusClass = c.status;
+        const costText = c.error
+          ? '<span class="metric-value error">오류</span>'
+          : `<span class="metric-value ${statusClass}">${Number(c.daily_cost).toLocaleString()}원</span>`;
+        const errorText = c.error ? `<div style="font-size:var(--text-xs);color:var(--status-error);margin-top:2px;">${c.error}</div>` : '';
+        const bizmoneyHtml = c.bizmoney != null
+          ? `<div class="metric">
+               <span class="metric-value info">${Math.round(Number(c.bizmoney)).toLocaleString()}원</span>
+               <div class="metric-label">비즈머니 잔액</div>
+             </div>`
+          : '';
+        html += `
+          <div class="acc-row">
+            <div class="acc-info">
+              <div class="acc-name">${c.name}</div>
+              <div class="acc-id">ID ${c.customer_id}</div>
+              ${errorText}
+            </div>
+            <div class="acc-metrics">
+              ${bizmoneyHtml}
+              <div class="metric">
+                ${costText}
+                <div class="metric-label">금일 소진 광고비 (기준 ${Number(c.threshold).toLocaleString()}원)</div>
+              </div>
+            </div>
+          </div>`;
+      });
+      document.getElementById('cost-area').innerHTML = html;
+      updateHeaderTime();
+      showToast('광고비 조회 완료', 'success');
+    } else { showToast('조회 실패: ' + data.message, 'error'); }
+  } catch (e) { showToast('서버 연결 실패', 'error'); }
+  finally {
+    btn.disabled = false;
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="white" style="width:15px;height:15px;"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg> 조회';
+  }
+}
+
+// ===== Date Range =====
+function getDateInputs() {
+  const from = document.getElementById('date-from').value;
+  const to = document.getElementById('date-to').value;
+  const r = {};
+  if (from) r.date_from = from;
+  if (to) r.date_to = to;
+  return r;
+}
+
+function getSortOptions() {
+  return {
+    adgroup_sort_by: document.getElementById('adgroup-sort-by').value,
+    adgroup_sort_order: document.getElementById('adgroup-sort-order').value,
+    keyword_sort_by: document.getElementById('keyword-sort-by').value,
+    keyword_sort_order: document.getElementById('keyword-sort-order').value,
+  };
+}
+
+function setDateRange(preset) {
+  const today = new Date();
+  const fmt = d => d.toISOString().split('T')[0];
+  let from, to;
+  switch(preset) {
+    case 'yesterday': { const y = new Date(today); y.setDate(y.getDate()-1); from = to = fmt(y); break; }
+    case '7days': { const d = new Date(today); d.setDate(d.getDate()-7); from = fmt(d); to = fmt(new Date(today.getTime()-86400000)); break; }
+    case '30days': { const d = new Date(today); d.setDate(d.getDate()-30); from = fmt(d); to = fmt(new Date(today.getTime()-86400000)); break; }
+    case 'thismonth': { from = fmt(new Date(today.getFullYear(), today.getMonth(), 1)); to = fmt(new Date(today.getTime()-86400000)); break; }
+    case 'lastmonth': { from = fmt(new Date(today.getFullYear(), today.getMonth()-1, 1)); to = fmt(new Date(today.getFullYear(), today.getMonth(), 0)); break; }
+  }
+  document.getElementById('date-from').value = from;
+  document.getElementById('date-to').value = to;
+}
+setDateRange('yesterday');
+
+// ===== Send Reports =====
+async function sendSelectedReports() {
+  const btn = document.getElementById('btn-send-reports');
+  btn.disabled = true;
+  if (selectedReportAccount === 'all') {
+    btn.innerHTML = '<span class="spinner"></span> 전체 발송 중';
+    showLoading('전체 보고서 발송 중...');
+    try {
+      const resp = await fetch('/api/send-all-reports', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({...getDateInputs(), ...getSortOptions()}) });
+      const data = await resp.json();
+      showToast(data.message, data.success ? 'success' : 'error');
+    } catch (e) { showToast('서버 연결 실패', 'error'); }
+    finally { hideLoading(); }
+  } else {
+    btn.innerHTML = '<span class="spinner"></span> 발송 중';
+    try {
+      const resp = await fetch('/api/send-report', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ account_index: selectedReportAccount, ...getDateInputs(), ...getSortOptions() }) });
+      const data = await resp.json();
+      showToast(data.message, data.success ? 'success' : 'error');
+    } catch (e) { showToast('서버 연결 실패', 'error'); }
+  }
+  btn.disabled = false;
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="white" style="width:15px;height:15px;"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg> 보고서 발송';
+}
+
+// ===== Platform Switching =====
+function switchPlatform(platform, btn) {
+  document.querySelectorAll('.platform-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.platform-panel').forEach(p => p.classList.remove('active'));
+  const panel = document.getElementById('panel-' + platform);
+  if (panel) panel.classList.add('active');
+}
+
+// ===== Coupang Date Range =====
+function setCpgDateRange(preset) {
+  const today = new Date();
+  const fmt = d => d.toISOString().split('T')[0];
+  let from, to;
+  switch(preset) {
+    case 'yesterday': { const y = new Date(today); y.setDate(y.getDate()-1); from = to = fmt(y); break; }
+    case '7days': { const d = new Date(today); d.setDate(d.getDate()-7); from = fmt(d); to = fmt(new Date(today.getTime()-86400000)); break; }
+    case '30days': { const d = new Date(today); d.setDate(d.getDate()-30); from = fmt(d); to = fmt(new Date(today.getTime()-86400000)); break; }
+    case 'thismonth': { from = fmt(new Date(today.getFullYear(), today.getMonth(), 1)); to = fmt(new Date(today.getTime()-86400000)); break; }
+    case 'lastmonth': { from = fmt(new Date(today.getFullYear(), today.getMonth()-1, 1)); to = fmt(new Date(today.getFullYear(), today.getMonth(), 0)); break; }
+  }
+  document.getElementById('cpg-date-from').value = from;
+  document.getElementById('cpg-date-to').value = to;
+}
+// Init coupang dates
+if (document.getElementById('cpg-date-from')) setCpgDateRange('yesterday');
+
+// ===== Coupang Campaign Management =====
+let cpgCampaignList = [];
+
+async function loadCoupangCampaigns(realtime) {
+  const btn = document.getElementById('btn-load-cpg-campaigns');
+  const area = document.getElementById('cpg-campaign-list');
+
+  if (realtime) {
+    // 실시간 조회: Selenium 로그인 (30~60초 소요)
+    if (btn) { btn.disabled = true; btn.textContent = '조회 중... (30~60초)'; }
+    if (area) area.innerHTML = '<div class="empty-state"><p>쿠팡 로그인 후 캠페인 조회 중... 30~60초 소요됩니다.</p></div>';
+    try {
+      const resp = await fetch('/api/coupang-campaigns?account_index=0');
+      const data = await resp.json();
+      if (data.success && data.campaigns.length > 0) {
+        cpgCampaignList = data.campaigns;
+        renderCpgCampaignList();
+        showToast(`캠페인 ${data.campaigns.length}개 실시간 조회 완료`, 'success');
+      } else {
+        area.innerHTML = `<div class="empty-state"><p>${data.message || '캠페인을 찾을 수 없습니다'}</p></div>`;
+      }
+    } catch(e) {
+      area.innerHTML = '<div class="empty-state"><p>캠페인 조회 실패</p></div>';
+      showToast('캠페인 조회 실패', 'error');
+    } finally {
+      if (btn) { btn.disabled = false; btn.innerHTML = '<svg viewBox="0 0 24 24" style="width:14px;height:14px;"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg> 실시간 조회'; }
+    }
+  } else {
+    // 캐시 조회: 이전 스크래핑 데이터에서 빠르게 로드
+    try {
+      const resp = await fetch('/api/coupang-campaigns?account_index=0&cache_only=true');
+      const data = await resp.json();
+      if (data.success && data.campaigns && data.campaigns.length > 0) {
+        cpgCampaignList = data.campaigns;
+        renderCpgCampaignList();
+      }
+    } catch(e) {}
+  }
+}
+
+// 페이지 로드 시 캐시된 캠페인 목록 자동 표시
+loadCoupangCampaigns(false);
+
+function renderCpgCampaignList() {
+  const area = document.getElementById('cpg-campaign-list');
+  if (!area || !cpgCampaignList.length) return;
+  let html = '<table width="100%" style="border-collapse:collapse;font-size:13px;">';
+  html += '<tr style="background:#f8f9fa;"><th style="padding:10px 8px;text-align:left;border-bottom:2px solid #e5e7eb;">캠페인명</th><th style="padding:10px 8px;text-align:center;border-bottom:2px solid #e5e7eb;width:100px;">상태</th><th style="padding:10px 8px;text-align:center;border-bottom:2px solid #e5e7eb;width:100px;">ON/OFF</th></tr>';
+  cpgCampaignList.forEach((c, i) => {
+    const isOn = c.status === 'ON' || c.status === '운영가능';
+    const statusColor = isOn ? '#16a34a' : '#9ca3af';
+    const statusText = isOn ? 'ON' : 'OFF';
+    const btnColor = isOn ? '#dc2626' : '#16a34a';
+    const btnText = isOn ? 'OFF로 변경' : 'ON으로 변경';
+    const action = isOn ? 'pause' : 'resume';
+    html += `<tr style="border-bottom:1px solid #f3f4f6;">
+      <td style="padding:8px;">${c.name}</td>
+      <td style="padding:8px;text-align:center;">
+        <span style="display:inline-block;padding:2px 12px;border-radius:12px;font-size:12px;font-weight:600;background:${isOn ? '#dcfce7' : '#f3f4f6'};color:${statusColor};">${statusText}</span>
+      </td>
+      <td style="padding:8px;text-align:center;">
+        <button onclick="toggleCpgCampaign('${c.name.replace(/'/g, "\\'")}', '${action}', this)" style="background:${btnColor};color:white;border:none;padding:4px 12px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;">${btnText}</button>
+      </td>
+    </tr>`;
+  });
+  html += '</table>';
+  area.innerHTML = html;
+}
+
+async function toggleCpgCampaign(name, action, btn) {
+  const actionText = action === 'pause' ? 'OFF' : 'ON';
+  if (!confirm(`'${name}' 캠페인을 ${actionText}(으)로 변경하시겠습니까?`)) return;
+  btn.disabled = true;
+  btn.textContent = '처리중...';
+  try {
+    showLoading(`캠페인 ${actionText} 처리 중... (30~60초 소요)`);
+    const resp = await fetch('/api/coupang-campaign/toggle', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ campaign_name: name, action: action, account_index: 0 }),
+    });
+    const result = await resp.json();
+    hideLoading();
+    if (result.success) {
+      showToast(result.message, 'success');
+      // 상태 업데이트
+      cpgCampaignList.forEach(c => {
+        if (c.name === name) c.status = action === 'pause' ? 'OFF' : 'ON';
+      });
+      renderCpgCampaignList();
+    } else {
+      showToast(result.message || '실패', 'error');
+      btn.disabled = false;
+    }
+  } catch(e) {
+    hideLoading();
+    showToast('캠페인 토글 실패', 'error');
+    btn.disabled = false;
+  }
+}
+
+// ===== Coupang Report Send =====
+async function sendCoupangReport() {
+  const btn = document.getElementById('btn-send-coupang');
+  btn.disabled = true;
+  const fromVal = document.getElementById('cpg-date-from').value;
+  const toVal = document.getElementById('cpg-date-to').value;
+  const body = {};
+  if (fromVal) body.date_from = fromVal;
+  if (toVal) body.date_to = toVal;
+
+  if (selectedCpgAccount === 'all') {
+    btn.innerHTML = '<span class="spinner"></span> 전체 발송 중... (계정당 1~2분)';
+    showLoading('쿠팡 전체 보고서 생성 중...');
+    try {
+      const resp = await fetch('/api/send-all-coupang-reports', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await resp.json();
+      showToast(data.message, data.success ? 'success' : 'error');
+    } catch (e) { showToast('서버 연결 실패', 'error'); }
+    finally { hideLoading(); }
+  } else {
+    btn.innerHTML = '<span class="spinner"></span> 발송 중... (1~2분 소요)';
+    showLoading('쿠팡 보고서 생성 중... (브라우저 스크래핑으로 1~2분 소요)');
+    try {
+      body.account_index = selectedCpgAccount;
+      const resp = await fetch('/api/send-coupang-report', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await resp.json();
+      showToast(data.message, data.success ? 'success' : 'error');
+    } catch (e) { showToast('서버 연결 실패', 'error'); }
+    finally { hideLoading(); }
+  }
+  btn.disabled = false;
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="white" style="width:15px;height:15px;"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg> 쿠팡 보고서 발송';
+}
+
+// ===== Password Toggle =====
+function togglePassword(inputId, btn) {
+  const input = document.getElementById(inputId);
+  if (input.type === 'password') {
+    input.type = 'text';
+    btn.textContent = '숨김';
+  } else {
+    input.type = 'password';
+    btn.textContent = '보기';
+  }
+}
+
+// ===== Settings Load =====
+async function loadSettings() {
+  try {
+    const resp = await fetch('/api/settings');
+    const data = await resp.json();
+    if (!data.success) return;
+    const s = data.settings;
+
+    // Email
+    document.getElementById('set-sender-email').value = s.email.sender_email || '';
+    document.getElementById('set-app-password').value = s.email.app_password || '';
+
+    // Schedule
+    document.getElementById('set-report-time').value = s.schedule.report_time || '09:00';
+    document.getElementById('set-alert-time').value = s.schedule.alert_check_time || '23:00';
+
+    // Alert
+    document.getElementById('set-alert-threshold').value = s.alert.daily_spend_threshold || 50000;
+    document.getElementById('set-alert-enabled').checked = s.alert.enabled !== false;
+
+    // Server URL
+    document.getElementById('set-server-url').value = s.server_url || '';
+  } catch (e) { console.error('설정 로드 실패:', e); }
+}
+
+// ===== Save General Settings =====
+async function saveGeneralSettings() {
+  const btn = document.getElementById('btn-save-settings');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> 저장 중';
+  try {
+    // Save email
+    await fetch('/api/settings/email', {
+      method: 'PUT', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        sender_email: document.getElementById('set-sender-email').value.trim(),
+        app_password: document.getElementById('set-app-password').value.trim(),
+      }),
+    });
+
+    // Save schedule
+    await fetch('/api/settings/schedule', {
+      method: 'PUT', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        report_time: document.getElementById('set-report-time').value,
+        alert_check_time: document.getElementById('set-alert-time').value,
+      }),
+    });
+
+    // Save alert
+    await fetch('/api/settings/alert', {
+      method: 'PUT', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        enabled: document.getElementById('set-alert-enabled').checked,
+        daily_spend_threshold: parseFloat(document.getElementById('set-alert-threshold').value) || 50000,
+      }),
+    });
+
+    // Save server URL
+    await fetch('/api/settings/server-url', {
+      method: 'PUT', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        server_url: document.getElementById('set-server-url').value.trim(),
+      }),
+    });
+
+    showToast('설정이 저장되었습니다', 'success');
+  } catch (e) {
+    showToast('설정 저장 실패', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="white" style="width:15px;height:15px;"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg> 설정 저장';
+  }
+}
+
+// ===== Coupang Account Management =====
+let cpgAccountList = [];
+let selectedCpgAccount = 'all';
+
+async function loadCoupangAccounts() {
+  try {
+    const resp = await fetch('/api/coupang-accounts');
+    const data = await resp.json();
+    if (data.success) {
+      cpgAccountList = data.accounts;
+      renderCpgAccountList();
+      renderCpgReportTabs();
+      const cnt = document.getElementById('cpg-account-count');
+      if (cnt) cnt.textContent = cpgAccountList.length;
+    }
+  } catch (e) { console.error('쿠팡 계정 로드 실패:', e); }
+}
+
+function renderCpgAccountList() {
+  const area = document.getElementById('cpg-account-list');
+  if (!area) return;
+  if (!cpgAccountList.length) {
+    area.innerHTML = '<div class="empty-state"><p>등록된 쿠팡 계정이 없습니다. 계정을 추가해 주세요.</p></div>';
+    return;
+  }
+  let html = '';
+  cpgAccountList.forEach(a => {
+    const emails = a.report_recipients || [];
+    let emailTags = '';
+    emails.forEach(em => {
+      emailTags += `<span style="display:inline-flex;align-items:center;gap:4px;background:#fff7ed;color:#9a3412;padding:3px 10px;border-radius:16px;font-size:11px;font-weight:500;margin:2px;">
+        ${em}
+        <span onclick="removeCpgEmail(${a.index},'${em}')" style="cursor:pointer;color:#fdba74;font-weight:700;font-size:13px;line-height:1;">&times;</span>
+      </span>`;
+    });
+    if (!emails.length) {
+      emailTags = '<span style="color:#9ca3af;font-size:12px;">수신 이메일 없음</span>';
+    }
+    html += `
+      <div class="acc-row" style="flex-direction:column;align-items:stretch;gap:8px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div class="acc-info">
+            <div class="acc-name">${a.name}</div>
+            <div class="acc-id">Wing ID: ${a.wing_id}</div>
+          </div>
+          <div class="acc-actions">
+            <button class="btn btn-secondary btn-sm" onclick="openEditCpgModal(${a.index})">수정</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteCpgAccount(${a.index}, '${a.name.replace(/'/g, "\\'")}')">삭제</button>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:6px 0 2px;border-top:1px solid #f3f4f6;">
+          <span style="font-size:11px;color:#6b7280;font-weight:600;min-width:60px;">수신 이메일</span>
+          ${emailTags}
+          <button onclick="showCpgEmailInput(${a.index}, this)" style="display:inline-flex;align-items:center;gap:2px;background:#f0fdf4;color:#16a34a;border:1px dashed #86efac;padding:3px 10px;border-radius:16px;font-size:11px;font-weight:600;cursor:pointer;">+ 추가</button>
+        </div>
+      </div>`;
+  });
+  area.innerHTML = html;
+}
+
+function showCpgEmailInput(index, btn) {
+  if (btn.parentElement.querySelector('.email-inline-wrap')) return;
+  btn.style.display = 'none';
+  const wrap = document.createElement('span');
+  wrap.className = 'email-inline-wrap';
+  wrap.style.cssText = 'display:inline-flex;align-items:center;gap:4px;margin:2px;';
+  wrap.innerHTML = `<input type="email" placeholder="이메일 입력" style="border:1px solid #86efac;border-radius:12px;padding:4px 10px;font-size:12px;width:180px;outline:none;">
+    <button onclick="submitCpgEmail(${index})" style="background:#16a34a;color:#fff;border:none;border-radius:12px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;">확인</button>
+    <button onclick="this.parentElement.previousElementSibling.style.display='';this.parentElement.remove()" style="background:#e5e7eb;color:#374151;border:none;border-radius:12px;padding:4px 8px;font-size:11px;cursor:pointer;">취소</button>`;
+  btn.parentElement.insertBefore(wrap, btn.nextSibling);
+  const input = wrap.querySelector('input');
+  input.focus();
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') submitCpgEmail(index);
+    if (e.key === 'Escape') { wrap.previousElementSibling.style.display = ''; wrap.remove(); }
+  });
+}
+
+async function submitCpgEmail(index) {
+  const wrap = document.querySelector('#cpg-account-list .email-inline-wrap');
+  const input = wrap ? wrap.querySelector('input') : null;
+  const email = input ? input.value.trim() : '';
+  if (!email || !email.includes('@')) {
+    showToast('올바른 이메일 주소를 입력하세요', 'error');
+    return;
+  }
+  const acc = cpgAccountList.find(a => a.index === index);
+  if (!acc) return;
+  const recipients = [...(acc.report_recipients || [])];
+  if (recipients.includes(email)) { showToast('이미 등록된 이메일입니다', 'error'); return; }
+  recipients.push(email);
+  try {
+    const resp = await fetch(`/api/coupang-accounts/${index}`, {
+      method: 'PUT', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ report_recipients: recipients }),
+    });
+    const result = await resp.json();
+    if (result.success) { showToast(`${email} 추가 완료`, 'success'); await loadCoupangAccounts(); }
+    else { showToast(result.message || '실패', 'error'); }
+  } catch(e) { showToast('이메일 추가 실패', 'error'); }
+}
+
+async function removeCpgEmail(index, email) {
+  if (!confirm(`${email} 이메일을 삭제하시겠습니까?`)) return;
+  const acc = cpgAccountList.find(a => a.index === index);
+  if (!acc) return;
+  const recipients = (acc.report_recipients || []).filter(e => e !== email);
+  try {
+    const resp = await fetch(`/api/coupang-accounts/${index}`, {
+      method: 'PUT', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ report_recipients: recipients }),
+    });
+    const result = await resp.json();
+    if (result.success) { showToast(`${email} 삭제 완료`, 'success'); await loadCoupangAccounts(); }
+    else { showToast(result.message || '실패', 'error'); }
+  } catch(e) { showToast('이메일 삭제 실패', 'error'); }
+}
+
+function renderCpgReportTabs() {
+  const tabs = document.getElementById('cpg-report-tabs');
+  if (!tabs) return;
+  let html = `<button class="tab-pill active" onclick="selectCpgReportTab(this, 'all')">전체</button>`;
+  cpgAccountList.forEach(a => {
+    html += `<button class="tab-pill" onclick="selectCpgReportTab(this, ${a.index})">${a.name}</button>`;
+  });
+  tabs.innerHTML = html;
+}
+
+function selectCpgReportTab(el, value) {
+  document.querySelectorAll('#cpg-report-tabs .tab-pill').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  selectedCpgAccount = value;
+}
+
+function openAddCpgModal() {
+  document.getElementById('add-cpg-modal').classList.add('show');
+  ['cpg-add-name','cpg-add-wing-id','cpg-add-wing-pw','cpg-add-recipients'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('cpg-add-headless').checked = true;
+}
+function closeCpgModal(id) { document.getElementById(id).classList.remove('show'); }
+
+async function addCpgAccount() {
+  const wingId = document.getElementById('cpg-add-wing-id').value.trim();
+  const wingPw = document.getElementById('cpg-add-wing-pw').value.trim();
+  const name = document.getElementById('cpg-add-name').value.trim() || '쿠팡 광고';
+  if (!wingId || !wingPw) { showToast('Wing ID와 비밀번호를 입력하세요', 'error'); return; }
+  const recipientsStr = document.getElementById('cpg-add-recipients').value.trim();
+  const recipients = recipientsStr ? recipientsStr.split(',').map(s => s.trim()).filter(Boolean) : [];
+  try {
+    showLoading('쿠팡 계정 추가 중...');
+    const resp = await fetch('/api/coupang-accounts', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ name, wing_id: wingId, wing_password: wingPw, report_recipients: recipients, headless: document.getElementById('cpg-add-headless').checked }),
+    });
+    const data = await resp.json();
+    showToast(data.message, data.success ? 'success' : 'error');
+    if (data.success) { closeCpgModal('add-cpg-modal'); await loadCoupangAccounts(); }
+  } catch (e) { showToast('서버 연결 실패', 'error'); }
+  finally { hideLoading(); }
+}
+
+function openEditCpgModal(index) {
+  const acc = cpgAccountList.find(a => a.index === index);
+  if (!acc) return;
+  document.getElementById('cpg-edit-index').value = index;
+  document.getElementById('cpg-edit-name').value = acc.name;
+  document.getElementById('cpg-edit-wing-id').value = acc.wing_id;
+  document.getElementById('cpg-edit-wing-pw').value = acc.wing_password;
+  document.getElementById('cpg-edit-recipients').value = (acc.report_recipients || []).join(', ');
+  document.getElementById('cpg-edit-headless').checked = acc.headless !== false;
+  document.getElementById('edit-cpg-modal').classList.add('show');
+}
+
+async function saveCpgAccount() {
+  const index = document.getElementById('cpg-edit-index').value;
+  const name = document.getElementById('cpg-edit-name').value.trim();
+  const wingId = document.getElementById('cpg-edit-wing-id').value.trim();
+  const wingPw = document.getElementById('cpg-edit-wing-pw').value.trim();
+  if (!wingId || !wingPw) { showToast('Wing ID와 비밀번호를 입력하세요', 'error'); return; }
+  const recipientsStr = document.getElementById('cpg-edit-recipients').value.trim();
+  const recipients = recipientsStr ? recipientsStr.split(',').map(s => s.trim()).filter(Boolean) : [];
+  try {
+    showLoading('쿠팡 계정 수정 중...');
+    const resp = await fetch(`/api/coupang-accounts/${index}`, {
+      method: 'PUT', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ name, wing_id: wingId, wing_password: wingPw, report_recipients: recipients, headless: document.getElementById('cpg-edit-headless').checked }),
+    });
+    const data = await resp.json();
+    showToast(data.message, data.success ? 'success' : 'error');
+    if (data.success) { closeCpgModal('edit-cpg-modal'); await loadCoupangAccounts(); }
+  } catch (e) { showToast('서버 연결 실패', 'error'); }
+  finally { hideLoading(); }
+}
+
+async function deleteCpgAccount(index, name) {
+  if (!confirm(`[${name}] 쿠팡 계정을 삭제하시겠습니까?`)) return;
+  try {
+    const resp = await fetch(`/api/coupang-accounts/${index}`, { method: 'DELETE' });
+    const data = await resp.json();
+    showToast(data.message, data.success ? 'success' : 'error');
+    if (data.success) await loadCoupangAccounts();
+  } catch (e) { showToast('서버 연결 실패', 'error'); }
+}
+
+// ===== GFA Account Management =====
+let gfaAccountList = [];
+let selectedGfaAccount = 'all';
+
+async function loadGfaAccounts() {
+  try {
+    const resp = await fetch('/api/gfa-accounts');
+    const data = await resp.json();
+    if (data.success) {
+      gfaAccountList = data.accounts;
+      renderGfaAccountList();
+      renderGfaReportTabs();
+      const cnt = document.getElementById('gfa-account-count');
+      if (cnt) cnt.textContent = gfaAccountList.length;
+    }
+  } catch (e) { console.error('GFA 계정 로드 실패:', e); }
+}
+
+function renderGfaAccountList() {
+  const area = document.getElementById('gfa-account-list');
+  if (!area) return;
+  if (!gfaAccountList.length) {
+    area.innerHTML = '<div class="empty-state"><p>등록된 GFA 계정이 없습니다. 계정을 추가해 주세요.</p></div>';
+    return;
+  }
+  let html = '';
+  gfaAccountList.forEach(a => {
+    const pwBadge = a.has_password
+      ? '<span style="background:#ecfdf5;color:#047857;padding:2px 8px;border-radius:9999px;font-size:11px;font-weight:600;">로그인 설정됨</span>'
+      : '<span style="background:#fef2f2;color:#991b1b;padding:2px 8px;border-radius:9999px;font-size:11px;font-weight:600;">비밀번호 미설정</span>';
+    const emails = a.report_recipients || [];
+    let emailTags = '';
+    emails.forEach((em, ei) => {
+      emailTags += `<span style="display:inline-flex;align-items:center;gap:4px;background:#eff6ff;color:#1e40af;padding:3px 10px;border-radius:16px;font-size:11px;font-weight:500;margin:2px;">
+        ${em}
+        <span onclick="removeGfaEmail(${a.index},'${em}')" style="cursor:pointer;color:#93c5fd;font-weight:700;font-size:13px;line-height:1;">&times;</span>
+      </span>`;
+    });
+    if (!emails.length) {
+      emailTags = '<span style="color:#9ca3af;font-size:12px;">수신 이메일 없음</span>';
+    }
+    html += `
+      <div class="acc-row" style="flex-direction:column;align-items:stretch;gap:8px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div class="acc-info">
+            <div class="acc-name">${a.name} ${pwBadge}</div>
+            <div class="acc-id">네이버 ID: ${a.naver_id} &middot; 고유번호: ${a.ad_account_id || '(미지정)'}</div>
+          </div>
+          <div class="acc-actions">
+            <button class="btn btn-secondary btn-sm" onclick="openEditGfaModal(${a.index})">수정</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteGfaAccount(${a.index}, '${a.name.replace(/'/g, "\\'")}')">삭제</button>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:6px 0 2px;border-top:1px solid #f3f4f6;">
+          <span style="font-size:11px;color:#6b7280;font-weight:600;min-width:60px;">수신 이메일</span>
+          ${emailTags}
+          <button onclick="showGfaEmailInput(${a.index}, this)" style="display:inline-flex;align-items:center;gap:2px;background:#f0fdf4;color:#16a34a;border:1px dashed #86efac;padding:3px 10px;border-radius:16px;font-size:11px;font-weight:600;cursor:pointer;">+ 추가</button>
+        </div>
+      </div>`;
+  });
+  area.innerHTML = html;
+}
+
+function showGfaEmailInput(index, btn) {
+  if (btn.parentElement.querySelector('.email-inline-wrap')) return;
+  btn.style.display = 'none';
+  const wrap = document.createElement('span');
+  wrap.className = 'email-inline-wrap';
+  wrap.style.cssText = 'display:inline-flex;align-items:center;gap:4px;margin:2px;';
+  wrap.innerHTML = `<input type="email" placeholder="이메일 입력" style="border:1px solid #86efac;border-radius:12px;padding:4px 10px;font-size:12px;width:180px;outline:none;">
+    <button onclick="submitGfaEmail(${index})" style="background:#16a34a;color:#fff;border:none;border-radius:12px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;">확인</button>
+    <button onclick="this.parentElement.previousElementSibling.style.display='';this.parentElement.remove()" style="background:#e5e7eb;color:#374151;border:none;border-radius:12px;padding:4px 8px;font-size:11px;cursor:pointer;">취소</button>`;
+  btn.parentElement.insertBefore(wrap, btn.nextSibling);
+  const input = wrap.querySelector('input');
+  input.focus();
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') submitGfaEmail(index);
+    if (e.key === 'Escape') { wrap.previousElementSibling.style.display = ''; wrap.remove(); }
+  });
+}
+
+async function submitGfaEmail(index) {
+  const wrap = document.querySelector('.email-inline-wrap');
+  const input = wrap ? wrap.querySelector('input') : null;
+  const email = input ? input.value.trim() : '';
+  if (!email || !email.includes('@')) {
+    showToast('올바른 이메일 주소를 입력하세요', 'error');
+    return;
+  }
+  const acc = gfaAccountList.find(a => a.index === index);
+  if (!acc) return;
+  const recipients = [...(acc.report_recipients || [])];
+  if (recipients.includes(email)) {
+    showToast('이미 등록된 이메일입니다', 'error');
+    return;
+  }
+  recipients.push(email);
+  try {
+    const resp = await fetch(`/api/gfa-accounts/${index}`, {
+      method: 'PUT', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ report_recipients: recipients }),
+    });
+    const result = await resp.json();
+    if (result.success) {
+      showToast(`${email} 추가 완료`, 'success');
+      await loadGfaAccounts();
+    } else {
+      showToast(result.message || '실패', 'error');
+    }
+  } catch(e) { showToast('이메일 추가 실패', 'error'); }
+}
+
+async function removeGfaEmail(index, email) {
+  if (!confirm(`${email} 이메일을 삭제하시겠습니까?`)) return;
+  const acc = gfaAccountList.find(a => a.index === index);
+  if (!acc) return;
+  const recipients = (acc.report_recipients || []).filter(e => e !== email);
+  try {
+    const resp = await fetch(`/api/gfa-accounts/${index}`, {
+      method: 'PUT', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ report_recipients: recipients }),
+    });
+    const result = await resp.json();
+    if (result.success) {
+      showToast(`${email} 삭제 완료`, 'success');
+      await loadGfaAccounts();
+    } else {
+      showToast(result.message || '실패', 'error');
+    }
+  } catch(e) { showToast('이메일 삭제 실패', 'error'); }
+}
+
+function renderGfaReportTabs() {
+  const tabs = document.getElementById('gfa-report-tabs');
+  if (!tabs) return;
+  let html = `<button class="tab-pill active" onclick="selectGfaReportTab(this, 'all')">전체</button>`;
+  gfaAccountList.forEach(a => {
+    html += `<button class="tab-pill" onclick="selectGfaReportTab(this, ${a.index})">${a.name}</button>`;
+  });
+  tabs.innerHTML = html;
+}
+
+function selectGfaReportTab(el, value) {
+  document.querySelectorAll('#gfa-report-tabs .tab-pill').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  selectedGfaAccount = value;
+}
+
+function openAddGfaModal() {
+  document.getElementById('add-gfa-modal').classList.add('show');
+  ['gfa-add-name','gfa-add-naver-id','gfa-add-naver-pw','gfa-add-ad-account-id','gfa-add-recipients'].forEach(id => document.getElementById(id).value = '');
+}
+function closeGfaModal(id) { document.getElementById(id).classList.remove('show'); }
+
+async function addGfaAccount() {
+  const naverId = document.getElementById('gfa-add-naver-id').value.trim();
+  const name = document.getElementById('gfa-add-name').value.trim() || '네이버 GFA';
+  if (!naverId) { showToast('네이버 ID를 입력하세요', 'error'); return; }
+  const naverPw = document.getElementById('gfa-add-naver-pw').value.trim();
+  if (!naverPw) { showToast('네이버 비밀번호를 입력하세요', 'error'); return; }
+  const recipientsStr = document.getElementById('gfa-add-recipients').value.trim();
+  const recipients = recipientsStr ? recipientsStr.split(',').map(s => s.trim()).filter(Boolean) : [];
+  try {
+    showLoading('GFA 계정 추가 중...');
+    const resp = await fetch('/api/gfa-accounts', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        name,
+        naver_id: naverId,
+        naver_password: naverPw,
+        ad_account_id: document.getElementById('gfa-add-ad-account-id').value.trim(),
+        report_recipients: recipients,
+      }),
+    });
+    const data = await resp.json();
+    showToast(data.message, data.success ? 'success' : 'error');
+    if (data.success) { closeGfaModal('add-gfa-modal'); await loadGfaAccounts(); }
+  } catch (e) { showToast('서버 연결 실패', 'error'); }
+  finally { hideLoading(); }
+}
+
+function openEditGfaModal(index) {
+  const acc = gfaAccountList.find(a => a.index === index);
+  if (!acc) return;
+  document.getElementById('gfa-edit-index').value = index;
+  document.getElementById('gfa-edit-name').value = acc.name;
+  document.getElementById('gfa-edit-naver-id').value = acc.naver_id;
+  document.getElementById('gfa-edit-naver-pw').value = '';  // 보안상 빈 값
+  document.getElementById('gfa-edit-ad-account-id').value = acc.ad_account_id || '';
+  document.getElementById('gfa-edit-recipients').value = (acc.report_recipients || []).join(', ');
+  document.getElementById('edit-gfa-modal').classList.add('show');
+}
+
+async function saveGfaAccount() {
+  const index = document.getElementById('gfa-edit-index').value;
+  const name = document.getElementById('gfa-edit-name').value.trim();
+  const naverId = document.getElementById('gfa-edit-naver-id').value.trim();
+  if (!naverId) { showToast('네이버 ID를 입력하세요', 'error'); return; }
+  const recipientsStr = document.getElementById('gfa-edit-recipients').value.trim();
+  const recipients = recipientsStr ? recipientsStr.split(',').map(s => s.trim()).filter(Boolean) : [];
+
+  const body = { name, naver_id: naverId, report_recipients: recipients };
+  const pw = document.getElementById('gfa-edit-naver-pw').value.trim();
+  if (pw) body.naver_password = pw;
+  body.ad_account_id = document.getElementById('gfa-edit-ad-account-id').value.trim();
+
+  try {
+    showLoading('GFA 계정 수정 중...');
+    const resp = await fetch(`/api/gfa-accounts/${index}`, {
+      method: 'PUT', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(body),
+    });
+    const data = await resp.json();
+    showToast(data.message, data.success ? 'success' : 'error');
+    if (data.success) { closeGfaModal('edit-gfa-modal'); await loadGfaAccounts(); }
+  } catch (e) { showToast('서버 연결 실패', 'error'); }
+  finally { hideLoading(); }
+}
+
+async function deleteGfaAccount(index, name) {
+  if (!confirm(`[${name}] GFA 계정을 삭제하시겠습니까?`)) return;
+  try {
+    const resp = await fetch(`/api/gfa-accounts/${index}`, { method: 'DELETE' });
+    const data = await resp.json();
+    showToast(data.message, data.success ? 'success' : 'error');
+    if (data.success) await loadGfaAccounts();
+  } catch (e) { showToast('서버 연결 실패', 'error'); }
+}
+
+// ===== GFA Date Range =====
+function setGfaDateRange(preset) {
+  const today = new Date();
+  const fmt = d => d.toISOString().split('T')[0];
+  let from, to;
+  switch(preset) {
+    case 'yesterday': { const y = new Date(today); y.setDate(y.getDate()-1); from = to = fmt(y); break; }
+    case '7days': { const d = new Date(today); d.setDate(d.getDate()-7); from = fmt(d); to = fmt(new Date(today.getTime()-86400000)); break; }
+    case '30days': { const d = new Date(today); d.setDate(d.getDate()-30); from = fmt(d); to = fmt(new Date(today.getTime()-86400000)); break; }
+    case 'thismonth': { from = fmt(new Date(today.getFullYear(), today.getMonth(), 1)); to = fmt(new Date(today.getTime()-86400000)); break; }
+    case 'lastmonth': { from = fmt(new Date(today.getFullYear(), today.getMonth()-1, 1)); to = fmt(new Date(today.getFullYear(), today.getMonth(), 0)); break; }
+  }
+  document.getElementById('gfa-date-from').value = from;
+  document.getElementById('gfa-date-to').value = to;
+}
+// Init GFA dates
+if (document.getElementById('gfa-date-from')) setGfaDateRange('yesterday');
+
+// ===== GFA Report Send =====
+async function sendGfaReport() {
+  const btn = document.getElementById('btn-send-gfa');
+  btn.disabled = true;
+  const fromVal = document.getElementById('gfa-date-from').value;
+  const toVal = document.getElementById('gfa-date-to').value;
+  const body = {};
+  if (fromVal) body.date_from = fromVal;
+  if (toVal) body.date_to = toVal;
+
+  if (selectedGfaAccount === 'all') {
+    btn.innerHTML = '<span class="spinner"></span> 전체 발송 중...';
+    showLoading('GFA 전체 보고서 생성 중...');
+    try {
+      const resp = await fetch('/api/send-all-gfa-reports', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await resp.json();
+      showToast(data.message, data.success ? 'success' : 'error');
+    } catch (e) { showToast('서버 연결 실패', 'error'); }
+    finally { hideLoading(); }
+  } else {
+    btn.innerHTML = '<span class="spinner"></span> 발송 중...';
+    showLoading('GFA 보고서 생성 중...');
+    try {
+      body.account_index = selectedGfaAccount;
+      const resp = await fetch('/api/send-gfa-report', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await resp.json();
+      showToast(data.message, data.success ? 'success' : 'error');
+    } catch (e) { showToast('서버 연결 실패', 'error'); }
+    finally { hideLoading(); }
+  }
+  btn.disabled = false;
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="white" style="width:15px;height:15px;"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg> GFA 보고서 발송';
+}
+
+// Init
+loadAccounts();
+loadSettings();
+loadGfaAccounts();
+loadCoupangAccounts();
+</script>
+
+</body>
+</html>
