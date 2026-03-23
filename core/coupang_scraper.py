@@ -600,10 +600,11 @@ class CoupangAdsScraper:
         # 캠페인별 성과 탭 클릭 (가능하면)
         try:
             campaign_tab = self._find_element_multi([
+                (By.XPATH, "//div[contains(@data-bigfoot-extra, 'CAMPAIGN_AD_PERFORMANCE')]"),
                 (By.XPATH, "//div[contains(text(), '캠페인별 성과')]"),
                 (By.XPATH, "//span[contains(text(), '캠페인별 성과')]"),
                 (By.XPATH, "//button[contains(text(), '캠페인별')]"),
-            ], timeout=3)
+            ], timeout=8)
             if campaign_tab:
                 campaign_tab.click()
                 logger.info("'캠페인별 성과' 탭 클릭")

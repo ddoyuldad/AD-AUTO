@@ -89,10 +89,16 @@ class NaverEmailSender:
             server.login(self.sender_email, self.app_password)
             server.sendmail(self.sender_email, recipient, msg.as_string())
 
-    def send_coupang_report(self, recipient: str, report) -> None:
+    def send_coupang_report(self, recipient: str, report,
+                           account_index: int = 0) -> None:
         """쿠팡 광고 보고서 이메일 발송."""
         template = self.template_env.get_template("coupang_report_email.html")
-        html_body = template.render(report=report)
+        server_url = self._get_server_url()
+        html_body = template.render(
+            report=report,
+            server_url=server_url,
+            account_index=account_index,
+        )
 
         date_str = ""
         if report.date_from and report.date_to and report.date_from != report.date_to:

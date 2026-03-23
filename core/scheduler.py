@@ -413,7 +413,7 @@ class JobScheduler:
 
                 # 이메일 발송
                 for recipient in coupang.report_recipients:
-                    email_sender.send_coupang_report(recipient, report)
+                    email_sender.send_coupang_report(recipient, report, account_index=account_index)
 
                 period = date_from.strftime("%m/%d")
                 if date_from != date_to:

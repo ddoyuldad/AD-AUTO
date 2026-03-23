@@ -1052,6 +1052,86 @@ function doToggle(){
 </body></html>
 """
 
+    COUPANG_CAMPAIGN_TOGGLE_HTML = """
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>쿠팡 캠페인 상태 변경</title>
+<style>
+body{font-family:'Malgun Gothic',sans-serif;background:#f0f2f5;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;}
+.card{background:#fff;border-radius:12px;padding:32px;max-width:420px;width:90%;box-shadow:0 2px 12px rgba(0,0,0,0.08);text-align:center;}
+h2{color:#e4002b;margin:0 0 8px;}
+.status{color:#888;font-size:14px;margin-bottom:20px;}
+.btn{display:inline-block;padding:12px 32px;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;border:none;color:#fff;margin:6px;}
+.btn-pause{background:#ef4444;}
+.btn-resume{background:#10b981;}
+.btn-cancel{background:#ccc;color:#555;}
+.result{margin-top:16px;padding:12px;border-radius:8px;display:none;}
+.result.ok{background:#d1fae5;color:#065f46;display:block;}
+.result.err{background:#fee2e2;color:#991b1b;display:block;}
+.loading{display:none;margin-top:16px;color:#888;font-size:14px;}
+.loading.show{display:block;}
+</style></head>
+<body>
+<div class="card">
+  <div style="font-size:11px;color:#e4002b;font-weight:600;letter-spacing:1px;margin-bottom:4px;">COUPANG ADS</div>
+  <h2>{{ campaign_name }}</h2>
+  <p class="status">현재 상태: {{ current_status }}</p>
+  <div id="buttons">
+    <p>이 캠페인을 <strong>{{ action_label }}</strong>하시겠습니까?</p>
+    <p style="font-size:12px;color:#f59e0b;">⚠ Selenium으로 처리되어 30~60초 소요됩니다.</p>
+    <button class="btn {% if action == 'pause' %}btn-pause{% else %}btn-resume{% endif %}" onclick="doToggle()">{{ action_label }}</button>
+    <button class="btn btn-cancel" onclick="window.close()">취소</button>
+  </div>
+  <div id="loading" class="loading">처리 중입니다... 잠시 기다려주세요.</div>
+  <div id="result" class="result"></div>
+</div>
+<script>
+function doToggle(){
+  document.getElementById('buttons').style.display='none';
+  document.getElementById('loading').className='loading show';
+  fetch('/api/coupang-campaign/toggle',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({campaign_name:'{{ campaign_name }}',action:'{{ action }}',account_index:{{ account_index }}})
+  })
+  .then(r=>r.json())
+  .then(d=>{
+    document.getElementById('loading').className='loading';
+    var el=document.getElementById('result');
+    el.textContent=d.message;
+    el.className='result '+(d.success?'ok':'err');
+  })
+  .catch(e=>{
+    document.getElementById('loading').className='loading';
+    var el=document.getElementById('result');
+    el.textContent='오류: '+e;
+    el.className='result err';
+  });
+}
+</script>
+</body></html>
+"""
+
+    @app.route("/coupang-campaign/<path:campaign_name>/toggle")
+    def coupang_campaign_toggle_page(campaign_name):
+        """이메일에서 클릭 시 보여줄 쿠팡 캠페인 ON/OFF 확인 페이지."""
+        from urllib.parse import unquote
+        campaign_name = unquote(campaign_name)
+        action = request.args.get("action", "pause")
+        account_index = request.args.get("account_index", 0, type=int)
+
+        action_label = "일시중지" if action == "pause" else "활성화"
+        current_status = "운영중" if action == "pause" else "일시중지"
+
+        return render_template_string(
+            COUPANG_CAMPAIGN_TOGGLE_HTML,
+            campaign_name=campaign_name,
+            action=action,
+            action_label=action_label,
+            current_status=current_status,
+            account_index=account_index,
+        )
+
     CAMPAIGN_ERROR_HTML = """
 <!DOCTYPE html>
 <html>

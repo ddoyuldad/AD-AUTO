@@ -753,25 +753,25 @@ def _parse_performance_table(report: CoupangReport, headers: list, rows: list):
         return
 
     # 중복 헤더 제거하여 고유 헤더 인덱스 매핑
-    # 헤더: [캠페인(9)개, 캠페인(9)개, 노출수, 노출수, ...]
-    # 두 번째 섹션(기간 이후)은 비교 기간이므로 무시
-    # 데이터 행: [2,198,496회, 2,812회, 0.13%, 629원, ...]
+    # 쿠팡 보고서 헤더는 비교 기간 때문에 모든 헤더가 2번씩 나옴:
+    #   [기간, 기간, 노출수, 노출수, 클릭수, 클릭수, ...]
+    # 또는 캠페인별 탭일 때:
+    #   [캠페인(9)개, 캠페인(9)개, 노출수, 노출수, ..., 기간, 노출수, ...]
+    # "기간"은 지표가 아니므로 항상 스킵하고, 나머지는 seen으로 중복 제거
     unique_headers = []
     seen = set()
-    hit_period = False
     for h in headers:
         h_str = str(h).strip()
         if not h_str:
             continue
-        # "기간" 이후는 비교 기간 섹션 → 무시
+        # "기간"은 지표가 아니므로 항상 스킵
         if h_str == "기간":
-            hit_period = True
             continue
-        if hit_period:
+        # 이미 본 헤더는 비교 기간 중복이므로 스킵
+        if h_str in seen:
             continue
-        if h_str not in seen:
-            unique_headers.append(h_str)
-            seen.add(h_str)
+        unique_headers.append(h_str)
+        seen.add(h_str)
 
     logger.info(f"성과 테이블 고유 헤더 {len(unique_headers)}개: {unique_headers}")
 

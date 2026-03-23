@@ -153,6 +153,7 @@
     <th style="padding:8px 6px;text-align:right;border-bottom:2px solid #cbd5e1;color:#475569;font-weight:600;">전환</th>
     <th style="padding:8px 6px;text-align:right;border-bottom:2px solid #cbd5e1;color:#475569;font-weight:600;">전환매출</th>
     <th style="padding:8px 6px;text-align:right;border-bottom:2px solid #cbd5e1;color:#475569;font-weight:600;">ROAS</th>
+    {% if server_url %}<th style="padding:8px 6px;text-align:center;border-bottom:2px solid #cbd5e1;color:#475569;font-weight:600;">제어</th>{% endif %}
   </tr>
   {% for c in report.campaigns %}
   <tr style="{% if loop.index is odd %}background:#fff;{% else %}background:#f8fafc;{% endif %}">
@@ -169,6 +170,15 @@
     <td style="padding:7px 6px;text-align:right;border-bottom:1px solid #e2e8f0;font-weight:600;">{{ "{:,}".format(c.conversions) }}</td>
     <td style="padding:7px 6px;text-align:right;border-bottom:1px solid #e2e8f0;">{{ "{:,.0f}".format(c.conversion_sales) }}</td>
     <td style="padding:7px 6px;text-align:right;border-bottom:1px solid #e2e8f0;font-weight:700;{% if c.roas >= 300 %}color:#16a34a;{% elif c.roas >= 100 %}color:#2563eb;{% else %}color:#dc2626;{% endif %}">{{ "{:.0f}".format(c.roas) }}%</td>
+    {% if server_url %}
+    <td style="padding:7px 6px;text-align:center;border-bottom:1px solid #e2e8f0;">
+      {% if c.status == '일시중지' or c.status == 'PAUSED' or c.status == 'OFF' %}
+      <a href="{{ server_url }}/coupang-campaign/{{ c.campaign_name | urlencode }}/toggle?action=resume&account_index={{ account_index | default(0) }}" style="display:inline-block;padding:3px 8px;background:#10b981;color:#fff;border-radius:4px;font-size:9px;text-decoration:none;font-weight:600;">ON</a>
+      {% else %}
+      <a href="{{ server_url }}/coupang-campaign/{{ c.campaign_name | urlencode }}/toggle?action=pause&account_index={{ account_index | default(0) }}" style="display:inline-block;padding:3px 8px;background:#ef4444;color:#fff;border-radius:4px;font-size:9px;text-decoration:none;font-weight:600;">OFF</a>
+      {% endif %}
+    </td>
+    {% endif %}
   </tr>
   {% endfor %}
   <!-- 합계 -->
@@ -179,8 +189,14 @@
     <td style="padding:8px 6px;text-align:right;border-top:2px solid #cbd5e1;">{{ "{:,}".format(report.total_conversions) }}</td>
     <td style="padding:8px 6px;text-align:right;border-top:2px solid #cbd5e1;">{{ "{:,.0f}".format(report.total_conversion_sales) }}</td>
     <td style="padding:8px 6px;text-align:right;border-top:2px solid #cbd5e1;{% if report.total_roas >= 300 %}color:#16a34a;{% elif report.total_roas >= 100 %}color:#2563eb;{% else %}color:#dc2626;{% endif %}">{{ "{:.0f}".format(report.total_roas) }}%</td>
+    {% if server_url %}<td style="padding:8px 6px;border-top:2px solid #cbd5e1;"></td>{% endif %}
   </tr>
   </table>
+  {% if server_url %}
+  <div style="margin-top:6px;font-size:10px;color:#9ca3af;">
+    * 캠페인 ON/OFF 버튼은 대시보드 서버가 실행 중일 때 작동합니다. ({{ server_url }})
+  </div>
+  {% endif %}
 </td></tr>
 {% endif %}
 
